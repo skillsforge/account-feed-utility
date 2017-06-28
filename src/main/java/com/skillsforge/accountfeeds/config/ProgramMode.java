@@ -8,6 +8,5 @@ public enum ProgramMode {
   CHECK,
   LINT,
   UPLOAD,
-  HELP,
-  INVALID
+  HELP
 }

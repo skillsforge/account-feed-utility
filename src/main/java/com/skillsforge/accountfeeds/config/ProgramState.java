@@ -93,7 +93,10 @@ public class ProgramState {
   private final Map<FileKey, File> files = new EnumMap<>(FileKey.class);
 
   @Nonnull
-  private ProgramMode programMode = ProgramMode.INVALID;
+  private ProgramMode programMode = ProgramMode.HELP;
+
+  private boolean fatalErrorEncountered = false;
+
   @Nonnull
   private PrintStream outputLogStream = System.out;
 
@@ -130,8 +133,9 @@ public class ProgramState {
       case UPLOAD:
         optionsForMode = uploadOptions;
         break;
+      //noinspection UnnecessaryDefault
       default:
-        programMode = ProgramMode.INVALID;
+        setFatalErrorEncountered();
         return;
     }
 
@@ -146,7 +150,7 @@ public class ProgramState {
                         + "Run the following command for information on how to use this utility.\n"
                         + "  java -jar account-feed-utility-<version>.jar help\n\n",
           e.getLocalizedMessage());
-      programMode = ProgramMode.INVALID;
+      setFatalErrorEncountered();
       return;
     }
 
@@ -175,11 +179,11 @@ public class ProgramState {
     } catch (FileNotFoundException e) {
       System.err.printf("[ERROR] Could not open output log file:\n  %s\n\n",
           e.getLocalizedMessage());
-      programMode = ProgramMode.INVALID;
+      setFatalErrorEncountered();
     } catch (UnsupportedEncodingException e) {
       System.err.printf("[ERROR] Could set UTF-8 encoding on output log file:\n  %s\n\n",
           e.getLocalizedMessage());
-      programMode = ProgramMode.INVALID;
+      setFatalErrorEncountered();
     }
   }
 
@@ -211,7 +215,7 @@ public class ProgramState {
             (parentDir == null) ? "" : (parentDir + '/'),
             filename,
             ioe.getLocalizedMessage());
-        programMode = ProgramMode.INVALID;
+        setFatalErrorEncountered();
         return null;
       }
     }
@@ -222,7 +226,7 @@ public class ProgramState {
           fileKey.getFilePathProp().getFileDescription(),
           (parentDir == null) ? "" : (parentDir + '/'),
           filename);
-      programMode = ProgramMode.INVALID;
+      setFatalErrorEncountered();
       return null;
     }
     return file;
@@ -299,8 +303,12 @@ public class ProgramState {
     return programMode;
   }
 
-  public void setProgramMode(@Nonnull final ProgramMode programMode) {
-    this.programMode = programMode;
+  public boolean hasFatalErrorBeenEncountered() {
+    return this.fatalErrorEncountered;
+  }
+
+  public final void setFatalErrorEncountered() {
+    this.fatalErrorEncountered = true;
   }
 
   @Nonnull

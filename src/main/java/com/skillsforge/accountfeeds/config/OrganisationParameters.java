@@ -72,7 +72,7 @@ public class OrganisationParameters {
                 "[ERROR] The state file (%s) is designed for a different version of this utility:"
                 + " found version %d, require version %d\n.",
                 stateFile.getPath(), stateFileVersion, STATE_CONFIG_VERSION);
-        state.setProgramMode(ProgramMode.INVALID);
+        state.setFatalErrorEncountered();
         return;
       }
 
@@ -122,7 +122,7 @@ public class OrganisationParameters {
       state.getOutputLogStream()
           .printf("[ERROR] Problem reading state file (%s): %s\n.", stateFile.getPath(),
               e.getLocalizedMessage());
-      state.setProgramMode(ProgramMode.INVALID);
+      state.setFatalErrorEncountered();
     }
 
     state.getOutputLogStream()

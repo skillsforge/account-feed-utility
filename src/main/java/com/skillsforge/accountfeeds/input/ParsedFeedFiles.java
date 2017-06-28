@@ -85,7 +85,7 @@ public class ParsedFeedFiles {
         state.getOutputLogStream()
             .printf("[ERROR] Problem encountered whilst accessing file: %s: %s.\n", file.getPath(),
                 e.getLocalizedMessage());
-        state.setProgramMode(ProgramMode.INVALID);
+        state.setFatalErrorEncountered();
       }
     }
   }

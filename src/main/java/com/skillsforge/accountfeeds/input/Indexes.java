@@ -78,10 +78,6 @@ public class Indexes {
 
   private void buildGroupIndexes(@Nonnull final ProgramState state,
       @Nonnull final Iterable<InputGroup> groups) {
-    state.getOutputLogStream()
-        .printf("[INFO] + Built User indexes (%d by UserId, %d by Username, %d by Email)\n",
-            usersByUserId.size(), usersByUsername.size(), usersByEmail.size());
-
     state.getOutputLogStream().print("[INFO] Building Group indexes:\n");
 
     for (final InputGroup group : groups) {
@@ -173,6 +169,10 @@ public class Indexes {
         }
       }
     }
+
+    state.getOutputLogStream()
+        .printf("[INFO] + Built User indexes (%d by UserId, %d by Username, %d by Email)\n",
+            usersByUserId.size(), usersByUsername.size(), usersByEmail.size());
   }
 
   @Nullable
