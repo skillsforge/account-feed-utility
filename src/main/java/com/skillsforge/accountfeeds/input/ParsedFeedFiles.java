@@ -15,6 +15,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -95,6 +96,31 @@ public class ParsedFeedFiles {
         state.setFatalErrorEncountered();
       }
     }
+  }
+
+  @Nonnull
+  public static List<String> getUsersHeaders() {
+    return new LinkedList<>(Arrays.asList(USERS_HEADERS_V5));
+  }
+
+  @Nonnull
+  public static List<String> getGroupsHeaders() {
+    return new LinkedList<>(Arrays.asList(GROUPS_HEADERS_V5));
+  }
+
+  @Nonnull
+  public static List<String> getUserGroupsHeaders() {
+    return new LinkedList<>(Arrays.asList(USER_GROUPS_HEADERS_V5));
+  }
+
+  @Nonnull
+  public static List<String> getUserRelationshipsHeaders() {
+    return new LinkedList<>(Arrays.asList(USER_RELATIONSHIPS_HEADERS_V5));
+  }
+
+  @Nonnull
+  public static List<String> getGroupRolesHeaders() {
+    return new LinkedList<>(Arrays.asList(GROUP_ROLES_HEADERS_V5));
   }
 
   public void checkLayout() {

@@ -31,23 +31,23 @@ public class InputUser {
   @Nonnull
   private final Map<String, String> metaData = new HashMap<>();
   @Nullable
-  private String userId;
+  private final String userId;
   @Nullable
-  private String username;
+  private final String username;
   @Nullable
-  private String email;
+  private final String email;
   @Nullable
-  private String title;
+  private final String title;
   @Nullable
-  private String forename;
+  private final String forename;
   @Nullable
-  private String surname;
+  private final String surname;
   @Nullable
-  private String archived;
+  private final String archived;
   @Nullable
-  private String disabled;
+  private final String disabled;
 
-  @SuppressWarnings("TypeMayBeWeakened")
+  @SuppressWarnings({"TypeMayBeWeakened", "OverlyComplexMethod"})
   public InputUser(@Nonnull final ProgramState state,
       @Nonnull final OrganisationParameters orgParams,
       @Nonnull final List<String> line,

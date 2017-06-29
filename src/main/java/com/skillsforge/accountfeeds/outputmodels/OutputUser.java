@@ -2,11 +2,18 @@ package com.skillsforge.accountfeeds.outputmodels;
 
 import com.skillsforge.accountfeeds.config.ProgramState;
 
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.jetbrains.annotations.Contract;
+
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
 
@@ -18,6 +25,10 @@ import static com.skillsforge.accountfeeds.config.LogLevel.WARN;
  */
 @SuppressWarnings({"FieldNotUsedInToString", "TypeMayBeWeakened"})
 public class OutputUser {
+
+  @Nonnull
+  public static final Comparator<? super OutputUser> CSV_SORTER =
+      (left, right) -> left.getSortString().compareToIgnoreCase(right.getSortString());
 
   @Nonnull
   private final String userId;
@@ -98,5 +109,41 @@ public class OutputUser {
     }
     relationshipRoleToUserIds.get(rel.getRoleAliasLeft()).add(rel.getUserIdRight());
     userRelationships.add(rel);
+  }
+
+  @Nonnull
+  public Set<String> getMetadataKeys() {
+    return metadata.keySet();
+  }
+
+  @Nonnull
+  @Contract(pure = true)
+  private String getSortString() {
+    return userId + ',' + userName + ',' + email;
+  }
+
+  @Nonnull
+  public String getCsvRow(@Nonnull final Collection<String> metadataHeaders) {
+    return StringEscapeUtils.escapeCsv(userId) + ',' +
+           StringEscapeUtils.escapeCsv(userName) + ',' +
+           StringEscapeUtils.escapeCsv(email) + ',' +
+           StringEscapeUtils.escapeCsv(title) + ',' +
+           StringEscapeUtils.escapeCsv(forename) + ',' +
+           StringEscapeUtils.escapeCsv(surname) + ',' +
+           disabled + ',' +
+           archived + ',' +
+           metadataHeaders.stream()
+               .map(s -> StringEscapeUtils.escapeCsv(metadata.getOrDefault(s, "")))
+               .collect(Collectors.joining(","));
+  }
+
+  @Nonnull
+  public Stream<OutputUserGroup> getGroups() {
+    return userGroups.stream();
+  }
+
+  @Nonnull
+  public Stream<OutputUserRelationship> getRelationshipsHeld() {
+    return userRelationships.stream();
   }
 }

@@ -52,6 +52,11 @@ public enum FileKey {
   }
 
   @Nonnull
+  public String getFileDescription() {
+    return filePathProp.getFileDescription();
+  }
+
+  @Nonnull
   public AccessType getAccessType() {
     return accessType;
   }

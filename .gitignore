@@ -4,6 +4,7 @@
 target
 out
 gen
+src/test/resources/test-csvs/dests
 
 # Compiled class file
 *.class

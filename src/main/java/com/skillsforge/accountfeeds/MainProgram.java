@@ -1,5 +1,6 @@
 package com.skillsforge.accountfeeds;
 
+import com.skillsforge.accountfeeds.config.FileKey;
 import com.skillsforge.accountfeeds.config.OrganisationParameters;
 import com.skillsforge.accountfeeds.config.ProgramMode;
 import com.skillsforge.accountfeeds.config.ProgramState;
@@ -16,8 +17,15 @@ import com.skillsforge.accountfeeds.outputmodels.OutputUser;
 import com.skillsforge.accountfeeds.outputmodels.OutputUserGroup;
 import com.skillsforge.accountfeeds.outputmodels.OutputUserRelationship;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
@@ -78,7 +86,7 @@ public class MainProgram {
     check(state, orgParams, feedFiles, compiledUsers, compiledGroups);
 
     if (state.getProgramMode() == ProgramMode.LINT) {
-      lint();
+      lint(state, compiledUsers, compiledGroups);
     }
 
     if (state.getProgramMode() == ProgramMode.UPLOAD) {
@@ -88,6 +96,11 @@ public class MainProgram {
     state.renderLog();
   }
 
+  @SuppressWarnings({
+      "MethodWithMoreThanThreeNegations",
+      "OverlyComplexMethod",
+      "OverlyCoupledMethod"
+  })
   private static void check(@Nonnull final ProgramState state,
       @Nonnull final OrganisationParameters orgParams,
       @Nonnull final ParsedFeedFiles feedFiles,
@@ -98,7 +111,7 @@ public class MainProgram {
     feedFiles.checkLayout();
 
     // Build objects
-    state.log(INFO, "Building objects:\n");
+    state.log(INFO, "\n\nBuilding objects:\n=================\n");
     final Collection<InputUser> users = feedFiles.generateUserModels();
     final Collection<InputGroup> groups = feedFiles.generateGroupModels();
     final Collection<InputUserGroup> userGroups = feedFiles.generateUserGroupModels();
@@ -119,14 +132,16 @@ public class MainProgram {
         compiledGroups.add(outputGroup);
       }
     }
+    state.log(INFO, "+ All objects built.\n");
 
     // Build indexes against the objects, and check for missing primary keys whilst doing so.
-    state.log(INFO, "Building object indexes:\n");
+    state.log(INFO, "\n\nBuilding object indexes:\n========================\n");
     final Indexes indexes =
         new Indexes(orgParams, state, users, groups, compiledUsers, compiledGroups);
+    state.log(INFO, "+ All indexes built.\n");
 
     // Build output objects
-    state.log(INFO, "Validating final feed objects:\n");
+    state.log(INFO, "\n\nValidating output objects:\n==========================\n");
     for (final InputGroupRole groupRole : groupRoles) {
       final OutputGroupRole newGroupRole = groupRole.validateAllFields(indexes);
 
@@ -160,8 +175,112 @@ public class MainProgram {
     state.log(INFO, "+ Validated all final feed objects.\n");
   }
 
-  private static void lint() {
+  private static void lint(@Nonnull final ProgramState state,
+      @Nonnull final Collection<OutputUser> compiledUsers,
+      @Nonnull final Collection<OutputGroup> compiledGroups) {
 
+    state.log(INFO, "\n\nOutputting linted objects:\n==========================\n");
+
+    // Users file
+    final Set<String> metadataKeys = new HashSet<>();
+    compiledUsers.forEach(outputUser -> metadataKeys.addAll(outputUser.getMetadataKeys()));
+
+    final Collection<String> usersFileHeader = ParsedFeedFiles.getUsersHeaders();
+    final Collection<String> metadataHeaders =
+        metadataKeys.stream().sorted().collect(Collectors.toList());
+    usersFileHeader.addAll(metadataHeaders);
+
+    writeOutToFile(state, usersFileHeader, FileKey.OUTPUT_USERS,
+        output -> compiledUsers.stream()
+            .sorted(OutputUser.CSV_SORTER)
+            .map(user -> user.getCsvRow(metadataHeaders))
+            .forEach(output::println)
+    );
+    if (state.hasFatalErrorBeenEncountered()) {
+      return;
+    }
+
+    // Groups file
+    writeOutToFile(state, ParsedFeedFiles.getGroupsHeaders(), FileKey.OUTPUT_GROUPS,
+        output -> compiledGroups.stream()
+            .sorted(OutputGroup.CSV_SORTER)
+            .map(OutputGroup::getCsvRow)
+            .forEach(output::println)
+    );
+    if (state.hasFatalErrorBeenEncountered()) {
+      return;
+    }
+
+    // UserGroups file
+    writeOutToFile(state, ParsedFeedFiles.getUserGroupsHeaders(), FileKey.OUTPUT_USER_GROUPS,
+        output -> compiledUsers.stream()
+            .flatMap(OutputUser::getGroups)
+            .sorted(OutputUserGroup.CSV_SORTER)
+            .map(OutputUserGroup::getCsvRow)
+            .forEach(output::println)
+    );
+    if (state.hasFatalErrorBeenEncountered()) {
+      return;
+    }
+
+    // UserRelationships file
+    writeOutToFile(state, ParsedFeedFiles.getUserRelationshipsHeaders(),
+        FileKey.OUTPUT_USER_RELATIONSHIPS,
+        output -> compiledUsers.stream()
+            .flatMap(OutputUser::getRelationshipsHeld)
+            .sorted(OutputUserRelationship.CSV_SORTER)
+            .map(OutputUserRelationship::getCsvRow)
+            .forEach(output::println)
+    );
+    if (state.hasFatalErrorBeenEncountered()) {
+      return;
+    }
+
+    // GroupRoles file
+    writeOutToFile(state, ParsedFeedFiles.getGroupRolesHeaders(),
+        FileKey.OUTPUT_GROUP_ROLES,
+        output -> compiledGroups.stream()
+            .flatMap(OutputGroup::getRoles)
+            .sorted(OutputGroupRole.CSV_SORTER)
+            .map(OutputGroupRole::getCsvRow)
+            .forEach(output::println)
+    );
+    if (state.hasFatalErrorBeenEncountered()) {
+      return;
+    }
+
+    state.log(INFO, "+ Output all linted objects.\n");
+  }
+
+  private static void writeOutToFile(@Nonnull final ProgramState state,
+      @Nonnull final Collection<String> headers, @Nonnull final FileKey fileType,
+      @Nonnull final Consumer<PrintStream> csvLineOutputConsumer) {
+
+    state.log(INFO, "Writing new %s file...", fileType.getFileDescription());
+    final File outputFile = state.getFile(fileType);
+    if (outputFile == null) {
+      throw new AssertionError("The " + fileType.getFileDescription() + " file was null.");
+    }
+
+    try (final PrintStream output = new PrintStream(outputFile, "UTF-8")) {
+      output.println(headers.stream().collect(Collectors.joining(",")));
+
+      csvLineOutputConsumer.accept(output);
+
+      output.flush();
+    } catch (UnsupportedEncodingException e) {
+      state.log(ERROR, "Could not set the file encoding of the output %s file to UTF-8: %s",
+          fileType.getFileDescription(), e.getLocalizedMessage());
+      state.setFatalErrorEncountered();
+      return;
+    } catch (FileNotFoundException e) {
+      state.log(ERROR, "Could not locate the output %s file (%s): %s",
+          fileType.getFileDescription(), outputFile.getPath(), e.getLocalizedMessage());
+      state.setFatalErrorEncountered();
+      return;
+    }
+
+    state.log(INFO, " ... %s file written successfully.", fileType.getFileDescription());
   }
 
   private static void upload() {

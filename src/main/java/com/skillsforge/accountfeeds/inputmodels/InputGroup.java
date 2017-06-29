@@ -22,13 +22,13 @@ public class InputGroup {
   @Nonnull
   private final ProgramState state;
   @Nullable
-  private String groupAlias;
+  private final String groupAlias;
   @Nullable
-  private String groupName;
+  private final String groupName;
   @Nullable
-  private String groupDescription;
+  private final String groupDescription;
   @Nullable
-  private String delete;
+  private final String delete;
 
   @SuppressWarnings("TypeMayBeWeakened")
   public InputGroup(@Nonnull final ProgramState state, @Nonnull final List<String> line) {
@@ -87,8 +87,7 @@ public class InputGroup {
           this.toString());
     }
 
-    return new OutputGroup(state, oGroupAlias, oGroupName, oGroupDescription,
-        "true".equals(oDelete));
+    return new OutputGroup(oGroupAlias, oGroupName, oGroupDescription, "true".equals(oDelete));
   }
 
   @Override

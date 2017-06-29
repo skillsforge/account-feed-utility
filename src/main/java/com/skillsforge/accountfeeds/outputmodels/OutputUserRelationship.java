@@ -1,5 +1,10 @@
 package com.skillsforge.accountfeeds.outputmodels;
 
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.jetbrains.annotations.Contract;
+
+import java.util.Comparator;
+
 import javax.annotation.Nonnull;
 
 /**
@@ -7,6 +12,10 @@ import javax.annotation.Nonnull;
  * @date 27-May-2017
  */
 public class OutputUserRelationship {
+
+  @Nonnull
+  public static final Comparator<? super OutputUserRelationship> CSV_SORTER =
+      (left, right) -> left.getSortString().compareToIgnoreCase(right.getSortString());
 
   @Nonnull
   private final String userIdLeft;
@@ -44,18 +53,23 @@ public class OutputUserRelationship {
     return roleAliasLeft;
   }
 
-  @Nonnull
-  public String getRoleAliasRight() {
-    return roleAliasRight;
-  }
-
-  public boolean isDelete() {
-    return delete;
-  }
-
   @Override
   public String toString() {
     return String.format("User->Relationship['%s'-[%s]->'%s','%s','%s']", userIdLeft, roleAliasLeft,
         userIdRight, delete ? "delete" : "active", roleAliasRight);
+  }
+
+  @Nonnull
+  @Contract(pure = true)
+  private String getSortString() {
+    return userIdLeft + roleAliasLeft + userIdRight;
+  }
+
+  public String getCsvRow() {
+    return StringEscapeUtils.escapeCsv(userIdLeft) + ',' +
+           StringEscapeUtils.escapeCsv(userIdRight) + ',' +
+           StringEscapeUtils.escapeCsv(roleAliasLeft) + ',' +
+           StringEscapeUtils.escapeCsv(roleAliasRight) + ',' +
+           "false";
   }
 }

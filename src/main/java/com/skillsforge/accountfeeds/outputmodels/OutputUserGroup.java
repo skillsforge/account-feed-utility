@@ -1,5 +1,10 @@
 package com.skillsforge.accountfeeds.outputmodels;
 
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.jetbrains.annotations.Contract;
+
+import java.util.Comparator;
+
 import javax.annotation.Nonnull;
 
 /**
@@ -7,6 +12,10 @@ import javax.annotation.Nonnull;
  * @date 27-May-2017
  */
 public class OutputUserGroup {
+
+  @Nonnull
+  public static final Comparator<? super OutputUserGroup> CSV_SORTER =
+      (left, right) -> left.getSortString().compareToIgnoreCase(right.getSortString());
 
   @Nonnull
   private final String userId;
@@ -31,5 +40,15 @@ public class OutputUserGroup {
   @Override
   public String toString() {
     return String.format("User->Group['%s'->'%s']", userId, groupAlias);
+  }
+
+  @Nonnull
+  @Contract(pure = true)
+  private String getSortString() {
+    return userId + ',' + groupAlias;
+  }
+
+  public String getCsvRow() {
+    return StringEscapeUtils.escapeCsv(userId) + ',' + StringEscapeUtils.escapeCsv(groupAlias);
   }
 }

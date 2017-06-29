@@ -14,7 +14,6 @@ import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.EnumMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -204,6 +203,7 @@ public class ProgramState {
     outputLogStream = outputStream;
   }
 
+  @SuppressWarnings("OverlyComplexMethod")
   @Nullable
   private File openFileWithAccessCheck(final FileKey fileKey) {
     if (fileKey == null) {
@@ -311,11 +311,6 @@ public class ProgramState {
     allLogLines.add(new LogLine(lvl, fmt, args));
   }
 
-  @Nonnull
-  public Map<FileKey, File> getFiles() {
-    return Collections.unmodifiableMap(files);
-  }
-
   @Nullable
   public File getFile(@Nullable final FileKey key) {
     return files.get(key);
@@ -328,11 +323,6 @@ public class ProgramState {
 
   public boolean hasFatalErrorBeenEncountered() {
     return this.fatalErrorEncountered;
-  }
-
-  @Nonnull
-  public Map<PropKey, String> getProperties() {
-    return Collections.unmodifiableMap(properties);
   }
 
   @Nullable
