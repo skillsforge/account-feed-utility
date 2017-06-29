@@ -68,7 +68,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>com.skillsforge.accountfeeds.MainProgram</mainClass>
+              <mainClass>com.skillsforge.accountfeeds.AccountFeedUtility</mainClass>
             </manifest>
           </archive>
         </configuration>
