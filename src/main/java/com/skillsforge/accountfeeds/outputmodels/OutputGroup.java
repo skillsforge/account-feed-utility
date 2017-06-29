@@ -7,6 +7,8 @@ import java.util.Set;
 
 import javax.annotation.Nonnull;
 
+import static com.skillsforge.accountfeeds.config.LogLevel.WARN;
+
 /**
  * @author aw1459
  * @date 27-May-2017
@@ -49,9 +51,8 @@ public class OutputGroup {
 
   public void addRole(@Nonnull final ProgramState state, @Nonnull final OutputGroupRole groupRole) {
     if (roleNames.contains(groupRole.getRoleAlias())) {
-      state.getOutputLogStream()
-          .printf("[WARNING] GroupRole mapping of '%s' -> '%s' is specified more than once.\n",
-              groupAlias, groupRole.getRoleAlias());
+      state.log(WARN, "GroupRole mapping of '%s' -> '%s' is specified more than once.",
+          groupAlias, groupRole.getRoleAlias());
       return;
     }
     roleNames.add(groupRole.getRoleAlias());

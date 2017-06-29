@@ -24,6 +24,10 @@ import java.util.regex.Pattern;
 
 import javax.annotation.Nonnull;
 
+import static com.skillsforge.accountfeeds.config.LogLevel.ERROR;
+import static com.skillsforge.accountfeeds.config.LogLevel.INFO;
+import static com.skillsforge.accountfeeds.config.LogLevel.WARN;
+
 /**
  * @author aw1459
  * @date 27-May-2017
@@ -77,21 +81,24 @@ public class ParsedFeedFiles {
 
     final File file = state.getFile(fileKey);
     if (file != null) {
-      try (final CsvReader csvReader = new CsvReader(
-          new InputStreamReader(new FileInputStream(file), UTF8))) {
+      try (
+          final CsvReader csvReader = new CsvReader(
+              new InputStreamReader(new FileInputStream(file), UTF8),
+              state
+          )
+      ) {
 
-        multiList.addAll(csvReader.readFile(System.out));
+        multiList.addAll(csvReader.readFile());
       } catch (IOException e) {
-        state.getOutputLogStream()
-            .printf("[ERROR] Problem encountered whilst accessing file: %s: %s.\n", file.getPath(),
-                e.getLocalizedMessage());
+        state.log(ERROR, "Problem encountered whilst accessing file: %s: %s.", file.getPath(),
+            e.getLocalizedMessage());
         state.setFatalErrorEncountered();
       }
     }
   }
 
   public void checkLayout() {
-    state.getOutputLogStream().printf("[INFO] Checking syntax and layout of individual files:\n\n");
+    state.log(INFO, "Checking syntax and layout of individual files:\n");
 
     checkUsersLayout();
     checkGenericLayout(groups, GROUPS_HEADERS_V5, "Groups");
@@ -103,9 +110,7 @@ public class ParsedFeedFiles {
   private void checkGenericLayout(@Nonnull final List<List<String>> multiList,
       @Nonnull final String[] headers, @Nonnull final String fileType) {
     if (multiList.isEmpty()) {
-      state.getOutputLogStream()
-          .printf("[INFO] %s file: is blank.  No assessment of this file will take place.\n",
-              fileType);
+      state.log(INFO, "%s file: is blank.  No assessment of this file will take place.", fileType);
       return;
     }
 
@@ -114,13 +119,12 @@ public class ParsedFeedFiles {
     checkHeader(headerLine, headers, fileType, false);
     checkBody(multiList, headerLine.size(), fileType);
 
-    state.getOutputLogStream().printf("[INFO] Completed checking %s file.\n", fileType);
+    state.log(INFO, "Completed checking %s file.", fileType);
   }
 
   private void checkUsersLayout() {
     if (users.isEmpty()) {
-      state.getOutputLogStream()
-          .printf("[INFO] Users file: is blank.  No assessment of this file will take place.\n");
+      state.log(INFO, "Users file: is blank.  No assessment of this file will take place.");
       return;
     }
 
@@ -130,42 +134,33 @@ public class ParsedFeedFiles {
     // There must be at least one metadata column, due to a bug in the sync servlet.
     final int headerCount = header.size();
     if (headerCount < (USERS_HEADERS_V5.length + 1)) {
-      state.getOutputLogStream()
-          .printf(
-              "[ERROR] Users file: has too few columns - expected at least eight standard columns"
-              + " and one metadata column.\n");
+      state.log(ERROR, "Users file: has too few columns - expected eight standard columns"
+                       + " and at least one metadata column.");
     }
 
     final List<String> metadataHeaders = header.subList(8, header.size());
-    state.getOutputLogStream()
-        .printf("[INFO] Users file: Metadata columns are: %s.\n", metadataHeaders.toString());
+    state.log(INFO, "Users file: Metadata columns are: %s.", metadataHeaders.toString());
 
     final Set<String> metadataHeadersSet = new HashSet<>(metadataHeaders);
     if (metadataHeaders.size() != metadataHeadersSet.size()) {
-      state.getOutputLogStream()
-          .printf(
-              "[WARNING] Users file: Some metadata columns have duplicate names - which column is"
-              + " actually used is not determinate.\n");
+      state.log(WARN, "Users file: Some metadata columns have duplicate names - which column is"
+                      + " actually used is not determinate.");
     }
 
     for (final String headerName : metadataHeaders) {
       if (!RE_USERS_METAHEADER_VALID_V5.matcher(headerName).matches()) {
-        state.getOutputLogStream()
-            .printf(
-                "[WARNING] Users file: Metadata column name '%s' contains invalid characters.\n",
-                headerName);
+        state.log(WARN, "Users file: Metadata column name '%s' contains invalid characters.",
+            headerName);
       }
       if (RE_USERS_METAHEADER_DISALLOWED_V5.matcher(headerName).matches()) {
-        state.getOutputLogStream()
-            .printf(
-                "[WARNING] Users file: Metadata column name '%s' contains a reserved word.\n",
-                headerName);
+        state.log(WARN, "Users file: Metadata column name '%s' contains a reserved word.",
+            headerName);
       }
     }
 
     checkBody(users, headerCount, "Users");
 
-    state.getOutputLogStream().print("[INFO] Completed checking Users file.\n");
+    state.log(INFO, "Completed checking Users file.");
   }
 
   private void checkHeader(@Nonnull final List<String> headerLine,
@@ -175,18 +170,14 @@ public class ParsedFeedFiles {
     final int userProvidedHeaderCount = headerLine.size();
 
     if (userProvidedHeaderCount < correctHeaderCount) {
-      state.getOutputLogStream()
-          .printf(
-              "[ERROR] %s file: This file has too few columns - expected " +
-              (hasMetadata ? "at least " : "") + "%d but found %d.\n",
-              fileType, correctHeaderCount, userProvidedHeaderCount);
+      state.log(ERROR, "%s file: This file has too few columns: expected " +
+                       (hasMetadata ? "at least " : "") + "%d but found %d.",
+          fileType, correctHeaderCount, userProvidedHeaderCount);
       return;
     }
     if (!hasMetadata && (userProvidedHeaderCount > correctHeaderCount)) {
-      state.getOutputLogStream()
-          .printf(
-              "[ERROR] %s file: This file has too many columns - expected %d but found %d.\n",
-              fileType, correctHeaderCount, userProvidedHeaderCount);
+      state.log(ERROR, "%s file: This file has too many columns: expected %d but found %d.",
+          fileType, correctHeaderCount, userProvidedHeaderCount);
       return;
     }
 
@@ -196,16 +187,12 @@ public class ParsedFeedFiles {
         continue;
       }
       if (headers[i].equalsIgnoreCase(headerName)) {
-        state.getOutputLogStream()
-            .printf(
-                "[ERROR] %s file: The column name '%s' is case-sensitive - it should be '%s'.\n",
-                fileType, headerName, headers[i]);
+        state.log(ERROR, "%s file: The column name '%s' is case-sensitive - it should be '%s'.",
+            fileType, headerName, headers[i]);
         continue;
       }
-      state.getOutputLogStream()
-          .printf(
-              "[ERROR] %s file: The column name '%s' should not appear in the position it does - "
-              + "'%s' should appear here instead.", fileType, headerName, headers[i]);
+      state.log(ERROR, "%s file: The column name '%s' should not appear in the position it does - "
+                       + "'%s' should appear here instead.", fileType, headerName, headers[i]);
     }
   }
 
@@ -219,35 +206,30 @@ public class ParsedFeedFiles {
       }
       if (line.isEmpty()) {
         if (state.getProgramMode() != ProgramMode.LINT) {
-          state.getOutputLogStream()
-              .printf("[WARNING] %s file: Line %d is blank.\n", fileType, lineNum);
+          state.log(WARN, "%s file: Line %d is blank.", fileType, lineNum);
         }
         continue;
       }
       if (line.size() != headerCount) {
-        state.getOutputLogStream()
-            .printf(
-                "[ERROR] %s file: Line %d (%s) has the wrong number of columns - expected %d, "
-                + "but found %d.\n",
-                fileType, lineNum, line.get(0), headerCount, line.size());
+        state.log(ERROR, "%s file: Line %d (%s) has the wrong number of columns - expected %d, "
+                         + "but found %d.",
+            fileType, lineNum, line.get(0), headerCount, line.size());
       }
 
       int colNum = 0;
       for (final String column : line) {
         colNum++;
         if (!column.equals(column.trim())) {
-          state.getOutputLogStream()
-              .printf(
-                  "[WARNING] %s file: Line %d (%s) Column %d (%s) begins or ends with whitespace - "
-                  + "this will be trimmed when uploaded.\n",
-                  fileType, lineNum, line.get(0), colNum, column);
+          state.log(WARN, "%s file: Line %d (%s) Column %d (%s) begins or ends with whitespace - "
+                          + "this will be trimmed when uploaded.",
+              fileType, lineNum, line.get(0), colNum, column);
         }
       }
     }
   }
 
   public Collection<InputUser> generateUserModels() {
-    state.getOutputLogStream().printf("[INFO] Building InputUser objects:\n");
+    state.log(INFO, "Building InputUser objects:");
 
     final Collection<InputUser> objects = new HashSet<>();
     final List<String> headerLine = users.iterator().next();
@@ -259,12 +241,12 @@ public class ParsedFeedFiles {
       }
     }
 
-    state.getOutputLogStream().printf("[INFO] + Built %d InputUser object(s).\n", objects.size());
+    state.log(INFO, "+ Built %d InputUser object(s).", objects.size());
     return objects;
   }
 
   public Collection<InputGroup> generateGroupModels() {
-    state.getOutputLogStream().printf("[INFO] Building InputGroup objects:\n");
+    state.log(INFO, "Building InputGroup objects:");
 
     final Collection<InputGroup> objects = new HashSet<>();
 
@@ -274,12 +256,12 @@ public class ParsedFeedFiles {
       }
     }
 
-    state.getOutputLogStream().printf("[INFO] + Built %d InputGroup object(s).\n", objects.size());
+    state.log(INFO, "+ Built %d InputGroup object(s).", objects.size());
     return objects;
   }
 
   public Collection<InputGroupRole> generateGroupRoleModels() {
-    state.getOutputLogStream().printf("[INFO] Building InputGroupRole objects:\n");
+    state.log(INFO, "Building InputGroupRole objects:");
 
     final Collection<InputGroupRole> objects = new HashSet<>();
 
@@ -289,13 +271,12 @@ public class ParsedFeedFiles {
       }
     }
 
-    state.getOutputLogStream()
-        .printf("[INFO] + Built %d InputGroupRole object(s).\n", objects.size());
+    state.log(INFO, "+ Built %d InputGroupRole object(s).", objects.size());
     return objects;
   }
 
   public Collection<InputUserGroup> generateUserGroupModels() {
-    state.getOutputLogStream().printf("[INFO] Building InputUserGroup objects:\n");
+    state.log(INFO, "Building InputUserGroup objects:");
 
     final Collection<InputUserGroup> objects = new HashSet<>();
 
@@ -305,13 +286,12 @@ public class ParsedFeedFiles {
       }
     }
 
-    state.getOutputLogStream()
-        .printf("[INFO] + Built %d InputUserGroup object(s).\n", objects.size());
+    state.log(INFO, "+ Built %d InputUserGroup object(s).", objects.size());
     return objects;
   }
 
   public Collection<InputUserRelationship> generateUserRelationshipModels() {
-    state.getOutputLogStream().printf("[INFO] Building InputUserRelationship objects:\n");
+    state.log(INFO, "Building InputUserRelationship objects:");
 
     final Collection<InputUserRelationship> objects = new HashSet<>();
 
@@ -321,8 +301,7 @@ public class ParsedFeedFiles {
       }
     }
 
-    state.getOutputLogStream()
-        .printf("[INFO] + Built %d InputUserRelationship object(s).\n", objects.size());
+    state.log(INFO, "+ Built %d InputUserRelationship object(s).", objects.size());
     return objects;
   }
 }

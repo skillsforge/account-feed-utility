@@ -1,12 +1,12 @@
 package com.skillsforge.accountfeeds.input;
 
+import com.skillsforge.accountfeeds.config.ProgramState;
 import com.skillsforge.accountfeeds.exceptions.CsvCheckedException;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,27 +16,34 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import static com.skillsforge.accountfeeds.config.LogLevel.ERROR;
+import static com.skillsforge.accountfeeds.config.LogLevel.WARN;
+
 /**
  * @author alexw
  * @date 25-Nov-2016
  */
 public class CsvReader extends BufferedReader {
+  @Nonnull
+  private final ProgramState state;
+
   private int lineNum = 1;
 
-  public CsvReader(@Nonnull final Reader reader) {
+  public CsvReader(@Nonnull final Reader reader, @Nonnull final ProgramState state) {
     super(reader);
+    this.state = state;
   }
 
   @Nonnull
-  public List<List<String>> readFile(@Nonnull final PrintStream outputStream) throws IOException {
+  public List<List<String>> readFile() throws IOException {
     final List<List<String>> fullFile = new LinkedList<>();
 
     List<String> thisLine = null;
     do {
       try {
-        thisLine = parseLine(outputStream);
+        thisLine = parseLine();
       } catch (CsvCheckedException e) {
-        outputStream.printf("[WARNING] Skipping line %d due to CSV parsing exception: %s", lineNum,
+        state.log(WARN, "Skipping line %d due to CSV parsing exception: %s", lineNum,
             e.getLocalizedMessage());
         continue;
       }
@@ -66,17 +73,12 @@ public class CsvReader extends BufferedReader {
   }
 */
 
-  /**
-   * @return
-   * @throws IOException
-   * @throws CsvCheckedException
-   */
   @Nullable
-  public List<String> parseLine(@Nonnull final PrintStream outputStream)
+  public List<String> parseLine()
       throws IOException, CsvCheckedException {
 
     final List<String> result = new LinkedList<>();
-    CsvStates state = CsvStates.START_OF_FIELD;
+    CsvStates stateMachine = CsvStates.START_OF_FIELD;
 
     int fieldNum = 1;
     boolean startOfLine = true;
@@ -96,7 +98,7 @@ public class CsvReader extends BufferedReader {
         return null;
       }
 
-      switch (state) {
+      switch (stateMachine) {
         case START_OF_FIELD:
           if ((nextRead == -1) || (nextChar == '\n')) {
             lineNum++;
@@ -109,10 +111,10 @@ public class CsvReader extends BufferedReader {
             result.add("");
           } else if (nextChar == '\"') {
             thisField.append('\"');
-            state = CsvStates.LEXING_QUOTED_FIELD;
+            stateMachine = CsvStates.LEXING_QUOTED_FIELD;
           } else {
             thisField.append(nextChar);
-            state = CsvStates.LEXING_UNQUOTED_FIELD;
+            stateMachine = CsvStates.LEXING_UNQUOTED_FIELD;
           }
           break;
         case LEXING_UNQUOTED_FIELD:
@@ -122,13 +124,13 @@ public class CsvReader extends BufferedReader {
             return Collections.unmodifiableList(result);
           }
           if (nextChar == ',') {
-            state = CsvStates.START_OF_FIELD;
+            stateMachine = CsvStates.START_OF_FIELD;
             result.add(StringEscapeUtils.unescapeCsv(thisField.toString()));
             thisField.setLength(0);
             fieldNum++;
           } else if (nextChar == '\"') {
-            outputStream.printf(
-                "[ERROR] CSV (Line %d, Field %d): Unescaped quotation mark or leading characters "
+            state.log(ERROR,
+                "CSV (Line %d, Field %d): Unescaped quotation mark or leading characters "
                 + "before quoted field.\n", lineNum, fieldNum);
             throw new CsvCheckedException("[ERROR] CSV (Line " + lineNum + ", Field " + fieldNum
                                           + "): Unescaped quotation mark or leading character "
@@ -139,20 +141,20 @@ public class CsvReader extends BufferedReader {
           break;
         case LEXING_QUOTED_FIELD:
           if (nextRead == -1) {
-            outputStream.printf("[ERROR] CSV (Line %d, Field %d): Unterminated quoted field.",
+            state.log(ERROR, "CSV (Line %d, Field %d): Unterminated quoted field.",
                 lineNum, fieldNum);
             throw new CsvCheckedException("[ERROR] CSV (Line " + lineNum + ", Field " + fieldNum
                                           + "): Unterminated quoted field.");
           }
           if (nextChar == '\n') {
             lineNum++;
-            outputStream.printf(
-                "[WARNING] CSV (Line %d, Field %d): Quoted field contains newline - was this "
+            state.log(WARN,
+                "CSV (Line %d, Field %d): Quoted field contains newline - was this "
                 + "intentional?",
                 lineNum, fieldNum);
           } else if (nextChar == '\"') {
             thisField.append('\"');
-            state = CsvStates.ENDING_QUOTED_FIELD;
+            stateMachine = CsvStates.ENDING_QUOTED_FIELD;
           } else {
             thisField.append(nextChar);
           }
@@ -164,16 +166,16 @@ public class CsvReader extends BufferedReader {
             return Collections.unmodifiableList(result);
           }
           if (nextChar == ',') {
-            state = CsvStates.START_OF_FIELD;
+            stateMachine = CsvStates.START_OF_FIELD;
             result.add(StringEscapeUtils.unescapeCsv(thisField.toString()));
             thisField.setLength(0);
             fieldNum++;
           } else if (nextChar == '\"') {
             thisField.append('\"');
-            state = CsvStates.LEXING_QUOTED_FIELD;
+            stateMachine = CsvStates.LEXING_QUOTED_FIELD;
           } else {
-            outputStream.printf(
-                "[ERROR] CSV (Line %d, Field %d): Unescaped quotation mark or trailing character "
+            state.log(ERROR,
+                "CSV (Line %d, Field %d): Unescaped quotation mark or trailing character "
                 + "after quoted field.",
                 lineNum, fieldNum);
             throw new CsvCheckedException("[ERROR] CSV (Line " + lineNum + ", Field " + fieldNum

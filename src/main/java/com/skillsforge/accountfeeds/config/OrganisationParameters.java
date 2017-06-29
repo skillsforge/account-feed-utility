@@ -20,6 +20,10 @@ import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import static com.skillsforge.accountfeeds.config.LogLevel.ERROR;
+import static com.skillsforge.accountfeeds.config.LogLevel.INFO;
+import static com.skillsforge.accountfeeds.config.LogLevel.WARN;
+
 /**
  * @author aw1459
  * @date 27-May-2017
@@ -53,12 +57,10 @@ public class OrganisationParameters {
     if (stateFile == null) {
       groupRoles.addAll(defaultGroupRoles);
       relationshipRoles.addAll(defaultRelationshipRoles);
-      state.getOutputLogStream()
-          .printf(
-              "\n[INFO] Not using any organisation-specific information - targeting %s (%s) "
-              + "running SkillsForge version %d.%d.%d.\n\n",
-              organisationName, organisation, targetVersionMajor, targetVersionMinor,
-              targetVersionRevision);
+      state.log(INFO, "Not using any organisation-specific information - targeting %s (%s) running "
+                      + "SkillsForge version %d.%d.%d.\n",
+          organisationName, organisation, targetVersionMajor, targetVersionMinor,
+          targetVersionRevision);
       return;
     }
 
@@ -67,11 +69,9 @@ public class OrganisationParameters {
 
       final int stateFileVersion = stateConfig.getInt("stateFileVersion");
       if (stateFileVersion != STATE_CONFIG_VERSION) {
-        state.getOutputLogStream()
-            .printf(
-                "[ERROR] The state file (%s) is designed for a different version of this utility:"
-                + " found version %d, require version %d\n.",
-                stateFile.getPath(), stateFileVersion, STATE_CONFIG_VERSION);
+        state.log(ERROR, "The state file (%s) is designed for a different version of this utility: "
+                         + "found version %d, require version %d.\n",
+            stateFile.getPath(), stateFileVersion, STATE_CONFIG_VERSION);
         state.setFatalErrorEncountered();
         return;
       }
@@ -83,11 +83,9 @@ public class OrganisationParameters {
       targetVersion =
           (((targetVersionMajor * 1000L) + targetVersionMinor) * 1000L) + targetVersionRevision;
       if (targetVersion < MINIMUM_SUPPORTED_TARGET_VERSION) {
-        state.getOutputLogStream()
-            .printf(
-                "[WARNING] The version of the SkillsForge instance this configuration targets "
-                + "(v%d.%d.%d) is older than this utility can provide for.\n",
-                targetVersionMajor, targetVersionMinor, targetVersionRevision);
+        state.log(WARN, "The version of the SkillsForge instance this configuration targets "
+                        + "(v%d.%d.%d) is older than this utility can provide for.\n",
+            targetVersionMajor, targetVersionMinor, targetVersionRevision);
       }
 
       organisation = stateConfig.getString("organisation");
@@ -119,18 +117,16 @@ public class OrganisationParameters {
             );
       }
     } catch (IOException | JSONException e) {
-      state.getOutputLogStream()
-          .printf("[ERROR] Problem reading state file (%s): %s\n.", stateFile.getPath(),
-              e.getLocalizedMessage());
+      state.log(ERROR, "Problem reading state file (%s): %s.", stateFile.getPath(),
+          e.getLocalizedMessage());
       state.setFatalErrorEncountered();
+      return;
     }
 
-    state.getOutputLogStream()
-        .printf(
-            "\n[INFO] Using state file provided for: %s (%s) targeting SkillsForge version %d.%d"
-            + ".%d.\n\n",
-            organisationName, organisation, targetVersionMajor, targetVersionMinor,
-            targetVersionRevision);
+    state.log(INFO, "Using state file provided for: "
+                    + "%s (%s) targeting SkillsForge version %d.%d.%d.\n",
+        organisationName, organisation, targetVersionMajor, targetVersionMinor,
+        targetVersionRevision);
   }
 
   @Nonnull

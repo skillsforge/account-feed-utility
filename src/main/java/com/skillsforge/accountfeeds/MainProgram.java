@@ -21,6 +21,9 @@ import java.util.HashSet;
 
 import javax.annotation.Nonnull;
 
+import static com.skillsforge.accountfeeds.config.LogLevel.ERROR;
+import static com.skillsforge.accountfeeds.config.LogLevel.INFO;
+
 /**
  * @author aw1459
  * @date 26-May-2017
@@ -36,7 +39,8 @@ public class MainProgram {
     // program should exit at the next convenient opportunity.
     @Nonnull final ProgramState state = new ProgramState(args);
     if (state.hasFatalErrorBeenEncountered()) {
-      System.err.print("Problems were encountered whilst starting up - exiting.\n\n");
+      state.log(ERROR, "Problems were encountered whilst starting up - exiting.\n");
+      state.renderLog();
       exitCode = 1;
       return;
     }
@@ -47,10 +51,9 @@ public class MainProgram {
     // organisation's current SkillsForge instance, and rules about their user metadata.  Immutable.
     @Nonnull final OrganisationParameters orgParams = new OrganisationParameters(state);
     if (state.hasFatalErrorBeenEncountered()) {
-      state.getOutputLogStream()
-          .printf(
-              "Problems were encountered whilst reading the organisational state file - exiting"
-              + ".\n\n");
+      state.log(ERROR,
+          "Problems were encountered whilst reading the organisational state file - exiting.\n");
+      state.renderLog();
       exitCode = 1;
       return;
     }
@@ -61,8 +64,8 @@ public class MainProgram {
     @Nonnull final ParsedFeedFiles feedFiles = new ParsedFeedFiles(state, orgParams);
 
     if (state.hasFatalErrorBeenEncountered()) {
-      state.getOutputLogStream()
-          .printf("Problems were encountered whilst parsing the input files - exiting.\n\n");
+      state.log(ERROR, "Problems were encountered whilst parsing the input files - exiting.\n");
+      state.renderLog();
       exitCode = 1;
       return;
     }
@@ -81,6 +84,8 @@ public class MainProgram {
     if (state.getProgramMode() == ProgramMode.UPLOAD) {
       upload();
     }
+
+    state.renderLog();
   }
 
   private static void check(@Nonnull final ProgramState state,
@@ -93,7 +98,7 @@ public class MainProgram {
     feedFiles.checkLayout();
 
     // Build objects
-    state.getOutputLogStream().printf("\n[INFO] Building objects:\n\n");
+    state.log(INFO, "Building objects:\n");
     final Collection<InputUser> users = feedFiles.generateUserModels();
     final Collection<InputGroup> groups = feedFiles.generateGroupModels();
     final Collection<InputUserGroup> userGroups = feedFiles.generateUserGroupModels();
@@ -116,12 +121,12 @@ public class MainProgram {
     }
 
     // Build indexes against the objects, and check for missing primary keys whilst doing so.
-    state.getOutputLogStream().printf("\n[INFO] Building object indexes:\n\n");
+    state.log(INFO, "Building object indexes:\n");
     final Indexes indexes =
         new Indexes(orgParams, state, users, groups, compiledUsers, compiledGroups);
 
     // Build output objects
-    state.getOutputLogStream().printf("\n[INFO] Validating final feed objects:\n\n");
+    state.log(INFO, "Validating final feed objects:\n");
     for (final InputGroupRole groupRole : groupRoles) {
       final OutputGroupRole newGroupRole = groupRole.validateAllFields(indexes);
 
@@ -152,7 +157,7 @@ public class MainProgram {
         }
       }
     }
-    state.getOutputLogStream().printf("\n[INFO] + Validated all final feed objects.\n\n");
+    state.log(INFO, "+ Validated all final feed objects.\n");
   }
 
   private static void lint() {

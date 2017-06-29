@@ -13,6 +13,9 @@ import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import static com.skillsforge.accountfeeds.config.LogLevel.ERROR;
+import static com.skillsforge.accountfeeds.config.LogLevel.WARN;
+
 /**
  * @author aw1459
  * @date 27-May-2017
@@ -55,14 +58,11 @@ public class InputUser {
     final int lineSize = line.size();
 
     if (lineSize < (metadataHeaders.size() + 8)) {
-      state.getOutputLogStream()
-          .printf(
-              "[ERROR] InputUser is incomplete as CSV line (%s) does not contain enough columns.\n",
-              line.toString());
+      state.log(ERROR, "InputUser is incomplete as CSV line (%s) does not contain enough columns.",
+          line.toString());
     }
     if (lineSize > (metadataHeaders.size() + 8)) {
-      state.getOutputLogStream()
-          .printf("[ERROR] Users CSV line (%s) contains too many columns.\n", line.get(0));
+      state.log(ERROR, "Users CSV line (%s) contains too many columns.", line.get(0));
     }
 
     userId = (lineSize > 0) ? line.get(0) : null;
@@ -124,10 +124,8 @@ public class InputUser {
     metaData.forEach((key, value) -> {
       final Pattern pattern = orgParams.getMetadataPattern(key);
       if ((pattern != null) && !pattern.matcher(value).matches()) {
-        state.getOutputLogStream()
-            .printf(
-                "[WARNING] User '%s' has unexpected or badly formatted metadata: '%s' -> '%s'.\n",
-                oUserId, key, value);
+        state.log(WARN, "User '%s' has unexpected or badly formatted metadata: '%s' -> '%s'.",
+            oUserId, key, value);
       }
     });
 

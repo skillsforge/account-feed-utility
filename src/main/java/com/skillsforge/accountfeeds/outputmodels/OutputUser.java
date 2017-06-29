@@ -10,6 +10,8 @@ import java.util.TreeSet;
 
 import javax.annotation.Nonnull;
 
+import static com.skillsforge.accountfeeds.config.LogLevel.WARN;
+
 /**
  * @author aw1459
  * @date 27-May-2017
@@ -75,9 +77,8 @@ public class OutputUser {
   public void addGroup(@Nonnull  final ProgramState state,
       @Nonnull final OutputUserGroup userGroup) {
     if (groupNames.contains(userGroup.getGroupAlias())) {
-      state.getOutputLogStream()
-          .printf("[WARNING] UserGroup mapping of '%s' -> '%s' is specified more than once.\n",
-              userId, userGroup.getGroupAlias());
+      state.log(WARN, "UserGroup mapping of '%s' -> '%s' is specified more than once.",
+          userId, userGroup.getGroupAlias());
       return;
     }
     groupNames.add(userGroup.getGroupAlias());
@@ -88,10 +89,8 @@ public class OutputUser {
       @Nonnull final OutputUserRelationship rel) {
     if (relationshipRoleToUserIds.containsKey(rel.getRoleAliasLeft())) {
       if (relationshipRoleToUserIds.get(rel.getRoleAliasLeft()).contains(rel.getUserIdRight())) {
-        state.getOutputLogStream()
-            .printf(
-                "[WARNING] UserRelationship mapping '%s'-[%s]->'%s' is specified more than once.\n",
-                userId, rel.getRoleAliasLeft(), rel.getUserIdRight());
+        state.log(WARN, "UserRelationship mapping '%s'-[%s]->'%s' is specified more than once.",
+            userId, rel.getRoleAliasLeft(), rel.getUserIdRight());
         return;
       }
     } else {

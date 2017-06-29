@@ -9,6 +9,8 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import static com.skillsforge.accountfeeds.config.LogLevel.ERROR;
+
 /**
  * @author aw1459
  * @date 27-May-2017
@@ -36,17 +38,13 @@ public class InputUserRelationship {
     final int lineSize = line.size();
 
     if (lineSize < 5) {
-      state.getOutputLogStream()
-          .printf(
-              "[ERROR] InputUserRelationship is incomplete as CSV line (%s) does not contain "
-              + "enough "
-              + "columns.\n",
-              line.toString());
+      state.log(ERROR, "InputUserRelationship is incomplete as CSV line (%s) does not contain "
+                       + "enough columns.",
+          line.toString());
     }
     if (lineSize > 5) {
-      state.getOutputLogStream()
-          .printf("[ERROR] InputUserRelationship CSV line (%s) contains too many columns.\n",
-              line.toString());
+      state.log(ERROR, "InputUserRelationship CSV line (%s) contains too many columns.",
+          line.toString());
     }
 
     userIdLeft = (lineSize > 0) ? line.get(0) : null;
@@ -75,11 +73,10 @@ public class InputUserRelationship {
     }
 
     if (oUserIdLeft.equalsIgnoreCase(oUserIdRight)) {
-      state.getOutputLogStream()
-          .printf(
-              "[ERROR] The holder/left and subject/right UserID columns held the same value "
-              + "in %s - you cannot hold a relationship over yourself.\n",
-              this.toString());
+      state.log(
+          ERROR, "The holder/left and subject/right UserID columns held the same value "
+                 + "in %s - you cannot hold a relationship over yourself.\n",
+          this.toString());
       return null;
     }
 
@@ -91,25 +88,20 @@ public class InputUserRelationship {
   private String validateHolderRole(@Nullable final String oRoleAlias,
       @Nonnull final Indexes indexes) {
     if ((oRoleAlias == null) || oRoleAlias.trim().isEmpty()) {
-      state.getOutputLogStream()
-          .printf(
-              "[ERROR] The (left) role alias column is blank in %s - this must be filled with a "
-              + "valid relationship-role.\n", this.toString());
+      state.log(ERROR, "The (left) role alias column is blank in %s - this must be filled with a "
+                       + "valid relationship-role.", this.toString());
       return null;
     }
     if (!indexes.rolesForRelationshipsContainsIgnoreCase(oRoleAlias)) {
-      state.getOutputLogStream()
-          .printf(
-              "[ERROR] The (left) role alias column (%s) in %s is not a valid relationship-role.\n",
-              oRoleAlias, this.toString());
+      state.log(ERROR, "The (left) role alias column (%s) in %s is not a valid relationship-role.",
+          oRoleAlias, this.toString());
       return null;
     }
     if (indexes.rolesForRelationshipsHasMismatchedCase(oRoleAlias)) {
-      state.getOutputLogStream()
-          .printf(
-              "[ERROR-LINTABLE] The left role alias column (%s) in %s is different in case from the"
-              + " defined relationship-role.  Will attempt to proceed with the defined role "
-              + "spelling.\n", oRoleAlias, this.toString());
+      state.log(ERROR, true,
+          "The left role alias column (%s) in %s is different in case from the"
+          + " defined relationship-role.  Will attempt to proceed with the defined role "
+          + "spelling.", oRoleAlias, this.toString());
       return indexes.correctRelationshipRoleCase(oRoleAlias);
     }
     return oRoleAlias;

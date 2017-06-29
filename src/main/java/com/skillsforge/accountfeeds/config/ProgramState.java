@@ -13,12 +13,16 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.LinkedList;
 import java.util.Map;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
+import static com.skillsforge.accountfeeds.config.LogLevel.ERROR;
 
 /**
  * @author aw1459
@@ -91,19 +95,22 @@ public class ProgramState {
   private final Map<PropKey, String> properties = new EnumMap<>(PropKey.class);
   @Nonnull
   private final Map<FileKey, File> files = new EnumMap<>(FileKey.class);
-
+  @Nonnull
+  private final PrintStream outputLogStream;
+  private final Collection<LogLine> allLogLines = new LinkedList<>();
   @Nonnull
   private ProgramMode programMode = ProgramMode.HELP;
-
   private boolean fatalErrorEncountered = false;
 
-  @Nonnull
-  private PrintStream outputLogStream = System.out;
+  public ProgramState() {
+    outputLogStream = System.out;
+  }
 
   public ProgramState(final String[] programArgs) {
 
     // Presume the user doesn't know how to call the program
     if (programArgs.length == 0) {
+      outputLogStream = System.out;
       showUsage();
       return;
     }
@@ -112,16 +119,19 @@ public class ProgramState {
     try {
       programMode = ProgramMode.valueOf(programArgs[0].trim().toUpperCase());
     } catch (IllegalArgumentException ignored) {
-      System.err.printf("[ERROR] %s is not a valid mode.\n\n"
-                        + "Run the following command for information on how to use this utility.\n"
-                        + "  java -jar account-feed-utility-<version>.jar help\n\n",
+      outputLogStream = System.err;
+      log(ERROR, "%s is not a valid mode.\n\n"
+                 + "Run the following command for information on how to use this utility.\n"
+                 + "  java -jar account-feed-utility-<version>.jar help\n",
           programArgs[0]);
+      setFatalErrorEncountered();
       return;
     }
 
     final Options optionsForMode;
     switch (programMode) {
       case HELP:
+        outputLogStream = System.out;
         showUsage();
         return;
       case CHECK:
@@ -135,6 +145,7 @@ public class ProgramState {
         break;
       //noinspection UnnecessaryDefault
       default:
+        outputLogStream = System.err;
         setFatalErrorEncountered();
         return;
     }
@@ -146,9 +157,10 @@ public class ProgramState {
     try {
       args = parser.parse(optionsForMode, remainingArgs);
     } catch (ParseException e) {
-      System.err.printf("[ERROR] Processing arguments:\n  %s\n\n"
-                        + "Run the following command for information on how to use this utility.\n"
-                        + "  java -jar account-feed-utility-<version>.jar help\n\n",
+      outputLogStream = System.err;
+      log(ERROR, "Processing arguments:\n  %s\n\n"
+                 + "Run the following command for information on how to use this utility.\n"
+                 + "  java -jar account-feed-utility-<version>.jar help\n",
           e.getLocalizedMessage());
       setFatalErrorEncountered();
       return;
@@ -173,18 +185,23 @@ public class ProgramState {
     }
 
     final File outputLogFile = files.get(FileKey.LOG);
+    final PrintStream outputStream;
     try {
-      outputLogStream =
-          (outputLogFile == null) ? System.out : new PrintStream(outputLogFile, "UTF-8");
+      outputStream = (outputLogFile == null) ? System.out : new PrintStream(outputLogFile, "UTF-8");
     } catch (FileNotFoundException e) {
-      System.err.printf("[ERROR] Could not open output log file:\n  %s\n\n",
-          e.getLocalizedMessage());
+      outputLogStream = System.err;
+      log(ERROR, "Could not open output log file:\n  %s\n", e.getLocalizedMessage());
       setFatalErrorEncountered();
+      return;
     } catch (UnsupportedEncodingException e) {
-      System.err.printf("[ERROR] Could set UTF-8 encoding on output log file:\n  %s\n\n",
+      outputLogStream = System.err;
+      log(ERROR, "Could not set UTF-8 encoding on output log file:\n  %s\n",
           e.getLocalizedMessage());
       setFatalErrorEncountered();
+      return;
     }
+
+    outputLogStream = outputStream;
   }
 
   @Nullable
@@ -210,7 +227,8 @@ public class ProgramState {
         //noinspection ResultOfMethodCallIgnored
         file.createNewFile();
       } catch (IOException ioe) {
-        System.err.printf("[ERROR] Could not create: %s (%s%s): %s.\n",
+
+        log(ERROR, "Could not create: %s (%s%s): %s.\n",
             fileKey.getFilePathProp().getFileDescription(),
             (parentDir == null) ? "" : (parentDir + '/'),
             filename,
@@ -221,7 +239,7 @@ public class ProgramState {
     }
 
     if (!hasAccess(fileKey.getAccessType(), file)) {
-      System.err.printf("[ERROR] Could not %s: %s (%s%s).\n",
+      log(ERROR, "Could not %s: %s (%s%s).\n",
           fileKey.getAccessType(),
           fileKey.getFilePathProp().getFileDescription(),
           (parentDir == null) ? "" : (parentDir + '/'),
@@ -284,9 +302,13 @@ public class ProgramState {
         + '\n');
   }
 
-  @Nonnull
-  public PrintStream getOutputLogStream() {
-    return outputLogStream;
+  public final void setFatalErrorEncountered() {
+    this.fatalErrorEncountered = true;
+  }
+
+  public final void log(@Nonnull final LogLevel lvl, @Nonnull final String fmt,
+      final Object... args) {
+    allLogLines.add(new LogLine(lvl, fmt, args));
   }
 
   @Nonnull
@@ -294,7 +316,8 @@ public class ProgramState {
     return Collections.unmodifiableMap(files);
   }
 
-  public File getFile(FileKey key) {
+  @Nullable
+  public File getFile(@Nullable final FileKey key) {
     return files.get(key);
   }
 
@@ -307,16 +330,43 @@ public class ProgramState {
     return this.fatalErrorEncountered;
   }
 
-  public final void setFatalErrorEncountered() {
-    this.fatalErrorEncountered = true;
-  }
-
   @Nonnull
   public Map<PropKey, String> getProperties() {
     return Collections.unmodifiableMap(properties);
   }
 
-  public String getProperty(PropKey key) {
+  @Nullable
+  public String getProperty(@Nullable final PropKey key) {
     return properties.get(key);
+  }
+
+  public final void log(@Nonnull final LogLine logLine) {
+    allLogLines.add(logLine);
+  }
+
+  public final void log(@Nonnull final LogLevel lvl, @Nonnull final String str) {
+    allLogLines.add(new LogLine(lvl, str));
+  }
+
+  public final void log(@Nonnull final LogLevel lvl, final boolean lintable,
+      @Nonnull final String str) {
+    allLogLines.add(new LogLine(lvl, lintable, str));
+  }
+
+  public final void log(@Nonnull final LogLevel lvl, final boolean lintable,
+      @Nonnull final String fmt, final Object... args) {
+    allLogLines.add(new LogLine(lvl, lintable, fmt, args));
+  }
+
+  public void renderLog() {
+    outputLogStream.printf("+========================\n"
+                           + "| Results:\n"
+                           + "|  + Warnings: [%d]\n"
+                           + "|  + Errors: [%d]\n"
+                           + "+=======================\n\n",
+        allLogLines.stream().filter(LogLine::isWarning).count(),
+        allLogLines.stream().filter(LogLine::isError).count()
+    );
+    allLogLines.forEach(logLine -> logLine.outputLogLine(outputLogStream));
   }
 }

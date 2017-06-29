@@ -9,6 +9,9 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import static com.skillsforge.accountfeeds.config.LogLevel.ERROR;
+import static com.skillsforge.accountfeeds.config.LogLevel.WARN;
+
 /**
  * @author aw1459
  * @date 27-May-2017
@@ -34,15 +37,12 @@ public class InputGroup {
     final int lineSize = line.size();
 
     if (lineSize < 4) {
-      state.getOutputLogStream()
-          .printf(
-              "[ERROR] InputGroup is incomplete as CSV line (%s) does not contain enough columns"
-              + ".\n",
-              line.toString());
+      state.log(ERROR,
+          "InputGroup is incomplete as CSV line (%s) does not contain enough columns.",
+          line.toString());
     }
     if (lineSize > 4) {
-      state.getOutputLogStream()
-          .printf("[ERROR] InputGroup CSV line (%s) contains too many columns.\n", line.toString());
+      state.log(ERROR, "InputGroup CSV line (%s) contains too many columns.", line.toString());
     }
 
     groupAlias = (lineSize > 0) ? line.get(0) : null;
@@ -81,11 +81,10 @@ public class InputGroup {
     }
 
     if ("true".equals(oDelete)) {
-      state.getOutputLogStream()
-          .printf(
-              "[WARNING] The Delete field in %s is set to true - deletion of groups has not yet "
-              + "been implemented, and this will likely not have the desired effect.\n",
-              this.toString());
+      state.log(WARN,
+          "The Delete field in %s is set to true - deletion of groups has not yet "
+          + "been implemented, and this will likely not have the desired effect.",
+          this.toString());
     }
 
     return new OutputGroup(state, oGroupAlias, oGroupName, oGroupDescription,
@@ -97,5 +96,4 @@ public class InputGroup {
     return String.format("Group['%s','%s','%s','%s']", groupAlias, groupName, groupDescription,
         delete);
   }
-
 }

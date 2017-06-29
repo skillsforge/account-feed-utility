@@ -17,6 +17,10 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import static com.skillsforge.accountfeeds.config.LogLevel.ERROR;
+import static com.skillsforge.accountfeeds.config.LogLevel.INFO;
+import static com.skillsforge.accountfeeds.config.LogLevel.WARN;
+
 /**
  * @author aw1459
  * @date 28-May-2017
@@ -78,18 +82,16 @@ public class Indexes {
 
   private void buildGroupIndexes(@Nonnull final ProgramState state,
       @Nonnull final Iterable<InputGroup> groups) {
-    state.getOutputLogStream().print("[INFO] Building Group indexes:\n");
+    state.log(INFO, "Building Group indexes:");
 
     for (final InputGroup group : groups) {
       final String groupAlias = group.getGroupAlias();
       if (groupAlias == null) {
-        state.getOutputLogStream()
-            .printf("[ERROR] A group with no GroupAlias was encountered: '%s'.\n",
+        state.log(ERROR, "A group with no GroupAlias was encountered: '%s'.",
                 group.toString());
       } else {
         if (groupsByAliasUpperCase.containsKey(groupAlias.trim().toUpperCase())) {
-          state.getOutputLogStream()
-              .printf("[ERROR] There is more than one group with the GroupAlias '%s'.\n",
+          state.log(ERROR, "There is more than one group with the GroupAlias '%s'.",
                   groupAlias.trim());
         } else {
           groupsByAlias.put(groupAlias.trim(), group);
@@ -98,13 +100,11 @@ public class Indexes {
       }
       final String groupName = group.getGroupName();
       if (groupName == null) {
-        state.getOutputLogStream()
-            .printf("[WARNING] A group with no GroupName was encountered: '%s'.\n",
+        state.log(WARN, "A group with no GroupName was encountered: '%s'.",
                 group.toString());
       } else {
         if (groupsByName.containsKey(groupName.trim())) {
-          state.getOutputLogStream()
-              .printf("[WARNING] There is more than one group with the GroupName '%s'.\n",
+          state.log(WARN, "There is more than one group with the GroupName '%s'.",
                   groupName.trim());
         } else {
           groupsByName.put(groupName.trim(), group);
@@ -112,24 +112,21 @@ public class Indexes {
       }
     }
 
-    state.getOutputLogStream()
-        .printf("[INFO] + Built Group indexes (%d by GroupAlias, %d by GroupName)\n",
+    state.log(INFO, "+ Built Group indexes (%d by GroupAlias, %d by GroupName)",
             groupsByAlias.size(), groupsByName.size());
   }
 
   private void buildUserIndexes(@Nonnull final ProgramState state,
       @Nonnull final Iterable<InputUser> users) {
-    state.getOutputLogStream().print("[INFO] Building User indexes:\n");
+    state.log(INFO, "Building User indexes:");
 
     for (final InputUser user : users) {
       final String userId = user.getUserId();
       if (userId == null) {
-        state.getOutputLogStream()
-            .printf("[ERROR] A user with no UserID was encountered: '%s'.\n", user.toString());
+        state.log(ERROR, "A user with no UserID was encountered: '%s'.", user.toString());
       } else {
         if (usersByUserIdLowerCase.containsKey(userId.trim().toLowerCase())) {
-          state.getOutputLogStream()
-              .printf("[ERROR] There is more than one user with the UserID '%s'.\n",
+          state.log(ERROR, "There is more than one user with the UserID '%s'.",
                   userId.trim());
         } else {
           usersByUserIdLowerCase.put(userId.trim().toLowerCase(), user);
@@ -138,17 +135,14 @@ public class Indexes {
       }
       final String username = user.getUsername();
       if (username == null) {
-        state.getOutputLogStream()
-            .printf("[ERROR] A user with no Username was encountered: '%s'.\n", user.toString());
+        state.log(ERROR, "A user with no Username was encountered: '%s'.", user.toString());
       } else {
         final String lowerCaseUsername = username.toLowerCase().trim();
         if (!lowerCaseUsername.equals(username.trim())) {
-          state.getOutputLogStream()
-              .printf("[WARNING] The Username '%s' will be lower-cased when uploaded.\n", username);
+          state.log(WARN, "The Username '%s' will be lower-cased when uploaded.", username);
         }
         if (usersByUsername.containsKey(lowerCaseUsername)) {
-          state.getOutputLogStream()
-              .printf("[ERROR] There is more than one user with the username '%s'.\n",
+          state.log(ERROR, "There is more than one user with the username '%s'.",
                   lowerCaseUsername);
         } else {
           usersByUsername.put(lowerCaseUsername, user);
@@ -156,13 +150,11 @@ public class Indexes {
       }
       final String email = user.getEmail();
       if (email == null) {
-        state.getOutputLogStream()
-            .printf("[ERROR] A user with no Email address was encountered: '%s'.\n",
+        state.log(ERROR, "A user with no Email address was encountered: '%s'.",
                 user.toString());
       } else {
         if (usersByEmail.containsKey(email)) {
-          state.getOutputLogStream()
-              .printf("[WARNING] There is more than one user with the email address '%s'.\n",
+          state.log(WARN, "There is more than one user with the email address '%s'.",
                   email);
         } else {
           usersByEmail.put(email.trim(), user);
@@ -170,8 +162,7 @@ public class Indexes {
       }
     }
 
-    state.getOutputLogStream()
-        .printf("[INFO] + Built User indexes (%d by UserId, %d by Username, %d by Email)\n",
+    state.log(INFO, "+ Built User indexes (%d by UserId, %d by Username, %d by Email)",
             usersByUserId.size(), usersByUsername.size(), usersByEmail.size());
   }
 
