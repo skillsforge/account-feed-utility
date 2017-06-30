@@ -28,16 +28,19 @@ public class OutputUserGroup {
   }
 
   @Nonnull
+  @Contract(pure = true)
   public String getUserId() {
     return userId;
   }
 
   @Nonnull
+  @Contract(pure = true)
   public String getGroupAlias() {
     return groupAlias;
   }
 
   @Override
+  @Contract(pure = true)
   public String toString() {
     return String.format("User->Group['%s'->'%s']", userId, groupAlias);
   }
@@ -48,6 +51,8 @@ public class OutputUserGroup {
     return userId + ',' + groupAlias;
   }
 
+  @Nonnull
+  @Contract(pure = true)
   public String getCsvRow() {
     return StringEscapeUtils.escapeCsv(userId) + ',' + StringEscapeUtils.escapeCsv(groupAlias);
   }

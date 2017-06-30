@@ -27,7 +27,6 @@ public class OutputUserRelationship {
   private final String roleAliasRight;
   private final boolean delete;
 
-  @SuppressWarnings("BooleanParameter")
   public OutputUserRelationship(@Nonnull final String userIdLeft, @Nonnull final String userIdRight,
       @Nonnull final String roleAliasLeft, @Nonnull final String roleAliasRight,
       final boolean delete) {
@@ -39,21 +38,25 @@ public class OutputUserRelationship {
   }
 
   @Nonnull
+  @Contract(pure = true)
   public String getUserIdLeft() {
     return userIdLeft;
   }
 
   @Nonnull
+  @Contract(pure = true)
   public String getUserIdRight() {
     return userIdRight;
   }
 
   @Nonnull
+  @Contract(pure = true)
   public String getRoleAliasLeft() {
     return roleAliasLeft;
   }
 
   @Override
+  @Contract(pure = true)
   public String toString() {
     return String.format("User->Relationship['%s'-[%s]->'%s','%s','%s']", userIdLeft, roleAliasLeft,
         userIdRight, delete ? "delete" : "active", roleAliasRight);
@@ -65,6 +68,8 @@ public class OutputUserRelationship {
     return userIdLeft + roleAliasLeft + userIdRight;
   }
 
+  @Nonnull
+  @Contract(pure = true)
   public String getCsvRow() {
     return StringEscapeUtils.escapeCsv(userIdLeft) + ',' +
            StringEscapeUtils.escapeCsv(userIdRight) + ',' +

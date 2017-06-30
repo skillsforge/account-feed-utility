@@ -1,5 +1,7 @@
 package com.skillsforge.accountfeeds.config;
 
+import org.jetbrains.annotations.Contract;
+
 import javax.annotation.Nonnull;
 
 /**
@@ -20,6 +22,7 @@ enum AccessType {
 
   @Override
   @Nonnull
+  @Contract(pure = true)
   public String toString() {
     return this.displayString;
   }

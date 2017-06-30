@@ -4,6 +4,8 @@ import com.skillsforge.accountfeeds.config.ProgramState;
 import com.skillsforge.accountfeeds.input.Indexes;
 import com.skillsforge.accountfeeds.outputmodels.OutputGroupRole;
 
+import org.jetbrains.annotations.Contract;
+
 import java.util.List;
 
 import javax.annotation.Nonnull;
@@ -16,7 +18,6 @@ import static com.skillsforge.accountfeeds.config.LogLevel.ERROR;
  * @date 27-May-2017
  */
 public class InputGroupRole {
-  // {"GroupAlias", "RoleAlias"};
   @SuppressWarnings("FieldNotUsedInToString")
   @Nonnull
   private final ProgramState state;
@@ -25,27 +26,25 @@ public class InputGroupRole {
   @Nullable
   private final String roleAlias;
 
-  @SuppressWarnings("TypeMayBeWeakened")
   public InputGroupRole(@Nonnull final ProgramState state, @Nonnull final List<String> line) {
     this.state = state;
 
-    final int lineSize = line.size();
-
-    if (lineSize < 2) {
+    if (line.size() < 2) {
       state.log(ERROR, "InputGroupRole is incomplete as CSV line (%s) does not contain enough "
                        + "columns.",
           line.toString());
     }
-    if (lineSize > 2) {
+    if (line.size() > 2) {
       state.log(ERROR, "InputGroupRole CSV line (%s) contains too many columns.",
           line.toString());
     }
 
-    groupAlias = (lineSize > 0) ? line.get(0) : null;
-    roleAlias = (lineSize > 1) ? line.get(1) : null;
+    groupAlias = CommonMethods.getFieldFromLine(line, 0);
+    roleAlias = CommonMethods.getFieldFromLine(line, 1);
   }
 
   @Nullable
+  @Contract(pure = true)
   public OutputGroupRole validateAllFields(@Nonnull final Indexes indexes) {
     final String oGroupAlias = CommonMethods.validateGroupAlias(groupAlias, indexes, state, this);
     final String oRoleAlias = validateGroupRole(roleAlias, indexes);
@@ -58,6 +57,7 @@ public class InputGroupRole {
   }
 
   @Nullable
+  @Contract(pure = true, value = "null,_ -> null")
   private String validateGroupRole(@Nullable final String oRoleAlias,
       @Nonnull final Indexes indexes) {
     if (oRoleAlias == null) {
@@ -81,6 +81,8 @@ public class InputGroupRole {
   }
 
   @Override
+  @Nonnull
+  @Contract(pure = true)
   public String toString() {
     return String.format("GroupRole['%s','%s']", groupAlias, roleAlias);
   }

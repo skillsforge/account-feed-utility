@@ -88,11 +88,11 @@ public class Indexes {
       final String groupAlias = group.getGroupAlias();
       if (groupAlias == null) {
         state.log(ERROR, "A group with no GroupAlias was encountered: '%s'.",
-                group.toString());
+            group.toString());
       } else {
         if (groupsByAliasUpperCase.containsKey(groupAlias.trim().toUpperCase())) {
           state.log(ERROR, "There is more than one group with the GroupAlias '%s'.",
-                  groupAlias.trim());
+              groupAlias.trim());
         } else {
           groupsByAlias.put(groupAlias.trim(), group);
           groupsByAliasUpperCase.put(groupAlias.trim().toUpperCase(), group);
@@ -101,11 +101,11 @@ public class Indexes {
       final String groupName = group.getGroupName();
       if (groupName == null) {
         state.log(WARN, "A group with no GroupName was encountered: '%s'.",
-                group.toString());
+            group.toString());
       } else {
         if (groupsByName.containsKey(groupName.trim())) {
           state.log(WARN, "There is more than one group with the GroupName '%s'.",
-                  groupName.trim());
+              groupName.trim());
         } else {
           groupsByName.put(groupName.trim(), group);
         }
@@ -113,7 +113,7 @@ public class Indexes {
     }
 
     state.log(INFO, "+ Built Group indexes (%d by GroupAlias, %d by GroupName)",
-            groupsByAlias.size(), groupsByName.size());
+        groupsByAlias.size(), groupsByName.size());
   }
 
   private void buildUserIndexes(@Nonnull final ProgramState state,
@@ -127,7 +127,7 @@ public class Indexes {
       } else {
         if (usersByUserIdLowerCase.containsKey(userId.trim().toLowerCase())) {
           state.log(ERROR, "There is more than one user with the UserID '%s'.",
-                  userId.trim());
+              userId.trim());
         } else {
           usersByUserIdLowerCase.put(userId.trim().toLowerCase(), user);
           usersByUserId.put(userId.trim(), user);
@@ -143,7 +143,7 @@ public class Indexes {
         }
         if (usersByUsername.containsKey(lowerCaseUsername)) {
           state.log(ERROR, "There is more than one user with the username '%s'.",
-                  lowerCaseUsername);
+              lowerCaseUsername);
         } else {
           usersByUsername.put(lowerCaseUsername, user);
         }
@@ -151,11 +151,11 @@ public class Indexes {
       final String email = user.getEmail();
       if (email == null) {
         state.log(ERROR, "A user with no Email address was encountered: '%s'.",
-                user.toString());
+            user.toString());
       } else {
         if (usersByEmail.containsKey(email)) {
           state.log(WARN, "There is more than one user with the email address '%s'.",
-                  email);
+              email);
         } else {
           usersByEmail.put(email.trim(), user);
         }
@@ -163,7 +163,7 @@ public class Indexes {
     }
 
     state.log(INFO, "+ Built User indexes (%d by UserId, %d by Username, %d by Email)",
-            usersByUserId.size(), usersByUsername.size(), usersByEmail.size());
+        usersByUserId.size(), usersByUsername.size(), usersByEmail.size());
   }
 
   @Nullable
@@ -185,34 +185,42 @@ public class Indexes {
   }
 
   @Nullable
+  @Contract(pure = true)
   public InputUser getUserByUserIdIgnoreCase(@Nonnull final String userId) {
     return usersByUserIdLowerCase.get(userId.trim().toLowerCase());
   }
 
+  @Contract(pure = true)
   public boolean userIdHasMismatchedCase(@Nonnull final String userId) {
-    return !usersByUserId.containsKey(userId.trim()) && usersByUserIdLowerCase.containsKey(
-        userId.trim().toLowerCase());
+    return !usersByUserId.containsKey(userId.trim())
+           && usersByUserIdLowerCase.containsKey(userId.trim().toLowerCase());
   }
 
+  @Nullable
+  @Contract(pure = true)
   public InputGroup getGroupByAliasIgnoreCase(@Nonnull final String groupAlias) {
     return groupsByAliasUpperCase.get(groupAlias.trim().toUpperCase());
   }
 
+  @Contract(pure = true)
   public boolean groupAliasHasMismatchedCase(@Nonnull final String groupAlias) {
-    return !groupsByAlias.containsKey(groupAlias.trim()) && groupsByAliasUpperCase.containsKey(
-        groupAlias.trim().toUpperCase());
+    return !groupsByAlias.containsKey(groupAlias.trim())
+           && groupsByAliasUpperCase.containsKey(groupAlias.trim().toUpperCase());
   }
 
+  @Contract(pure = true)
   public boolean rolesForRelationshipsContainsIgnoreCase(@Nonnull final String roleName) {
     return rolesForRelationshipsUpperCase.contains(roleName.trim().toUpperCase());
   }
 
+  @Contract(pure = true)
   public boolean rolesForRelationshipsHasMismatchedCase(@Nonnull final String roleName) {
     return !rolesForRelationships.contains(roleName.trim())
            && rolesForRelationshipsUpperCase.contains(roleName.trim().toUpperCase());
   }
 
   @Nullable
+  @Contract(pure = true)
   public String correctRelationshipRoleCase(@Nonnull final String roleName) {
     for (final String role : rolesForRelationships) {
       if (role.trim().equalsIgnoreCase(roleName.trim())) {
@@ -222,17 +230,20 @@ public class Indexes {
     return null;
   }
 
-  public boolean rolesForGroupsContainsIgnoreCase(final String roleName) {
+  @Contract(pure = true)
+  public boolean rolesForGroupsContainsIgnoreCase(@Nonnull final String roleName) {
     return rolesForGroupsUpperCase.contains(roleName.trim().toUpperCase());
   }
 
-  public boolean rolesForGroupsHasMismatchedCase(final String roleName) {
+  @Contract(pure = true)
+  public boolean rolesForGroupsHasMismatchedCase(@Nonnull final String roleName) {
     return !rolesForGroups.contains(roleName.trim()) && rolesForGroupsUpperCase.contains(
         roleName.trim().toUpperCase());
   }
 
   @Nullable
-  public String correctGroupRoleCase(final String roleName) {
+  @Contract(pure = true)
+  public String correctGroupRoleCase(@Nonnull final String roleName) {
     for (final String role : rolesForGroups) {
       if (role.trim().equalsIgnoreCase(roleName.trim())) {
         return role;

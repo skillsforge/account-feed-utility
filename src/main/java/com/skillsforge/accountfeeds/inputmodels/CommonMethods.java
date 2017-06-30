@@ -5,6 +5,7 @@ import com.skillsforge.accountfeeds.input.Indexes;
 
 import org.jetbrains.annotations.Contract;
 
+import java.util.List;
 import java.util.function.Function;
 
 import javax.annotation.Nonnull;
@@ -24,6 +25,14 @@ public final class CommonMethods {
 
   @Nullable
   @Contract(pure = true)
+  static String getFieldFromLine(@Nonnull final List<String> line, final int indexFrom0) {
+    return (line.size() > indexFrom0)
+           ? line.get(indexFrom0)
+           : null;
+  }
+
+  @Nullable
+  @Contract(pure = true, value = "null,_,_,_ -> null")
   static String validateGroupAlias(@Nullable final String oGroupAlias,
       @Nonnull final Indexes indexes, @Nonnull final ProgramState state,
       @Nonnull final Object inputObject) {
@@ -55,7 +64,7 @@ public final class CommonMethods {
   }
 
   @Nullable
-  @Contract(pure = true)
+  @Contract(pure = true, value = "null,_,_,_,_ -> null")
   static String validateUserId(@Nullable final String oUserId, @Nonnull final Indexes indexes,
       @Nonnull final ProgramState state, @Nonnull final Object inputObject,
       @Nonnull final String desc) {
@@ -86,24 +95,21 @@ public final class CommonMethods {
     return oUserId.trim();
   }
 
-  @Nullable
-  @Contract(pure = true, value = "null,_,_,_,null,_ -> null;"
-                                 + "null,_,_,_,!null,_ -> !null;"
-                                 + "!null,_,_,_,_,!null -> !null")
+  @Nonnull
+  @Contract(pure = true)
   static String validateTrueFalse(@Nullable final String field, @Nonnull final ProgramState state,
-      @Nonnull final Object inputObject, @Nonnull final String name,
-      @Nullable final String defaultIfNotSpecified, @Nullable final String defaultIfInvalid) {
+      @Nonnull final Object inputObject, @Nonnull final String name) {
     if ((field == null) || field.trim().isEmpty()) {
       state.log(ERROR, true,
           "[ERROR-LINTABLE] '%s' not specified in %s - must be true or false.",
           name, inputObject.toString());
-      return defaultIfNotSpecified;
+      return "false"; // Default when not specified
     }
     if (!"true".equalsIgnoreCase(field) && !"false".equalsIgnoreCase(field)) {
       state.log(ERROR, true,
           "[ERROR-LINTABLE] '%s' invalid in %s - must be true or false.  Will "
           + "proceed as if false.", name, inputObject.toString());
-      return defaultIfInvalid;
+      return "false"; // Default if invalid
     } else {
       return "true".equalsIgnoreCase(field) ? "true" : "false";
     }

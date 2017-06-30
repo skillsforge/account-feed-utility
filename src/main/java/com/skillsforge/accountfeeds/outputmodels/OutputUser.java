@@ -25,7 +25,6 @@ import static com.skillsforge.accountfeeds.config.LogLevel.WARN;
  */
 @SuppressWarnings({"FieldNotUsedInToString", "TypeMayBeWeakened"})
 public class OutputUser {
-
   @Nonnull
   public static final Comparator<? super OutputUser> CSV_SORTER =
       (left, right) -> left.getSortString().compareToIgnoreCase(right.getSortString());
@@ -56,11 +55,11 @@ public class OutputUser {
   @Nonnull
   private final Map<String, Set<String>> relationshipRoleToUserIds = new HashMap<>();
 
-  @SuppressWarnings({"BooleanParameter", "NegativelyNamedBooleanVariable"})
   public OutputUser(@Nonnull final String userId, @Nonnull final String userName,
       @Nonnull final String email, @Nonnull final String title, @Nonnull final String forename,
-      @Nonnull final String surname, final boolean disabled, final boolean archived,
-      @Nonnull final Map<String, String> metadata) {
+      @Nonnull final String surname,
+      @SuppressWarnings("NegativelyNamedBooleanVariable") final boolean disabled,
+      final boolean archived, @Nonnull final Map<String, String> metadata) {
     this.userId = userId;
     this.userName = userName;
     this.email = email;
@@ -73,11 +72,14 @@ public class OutputUser {
   }
 
   @Nonnull
+  @Contract(pure = true)
   public String getUserId() {
     return userId;
   }
 
   @Override
+  @Nonnull
+  @Contract(pure = true)
   public String toString() {
     return String.format("User['%s','%s','%s','%s','%s','%s','%s','%s',meta=%s,group=%s,rel=%s]",
         userId, userName, email, title, forename, surname, disabled ? "disabled" : "enabled",
@@ -85,7 +87,7 @@ public class OutputUser {
         userRelationships.toString());
   }
 
-  public void addGroup(@Nonnull  final ProgramState state,
+  public void addGroup(@Nonnull final ProgramState state,
       @Nonnull final OutputUserGroup userGroup) {
     if (groupNames.contains(userGroup.getGroupAlias())) {
       state.log(WARN, "UserGroup mapping of '%s' -> '%s' is specified more than once.",
@@ -112,8 +114,9 @@ public class OutputUser {
   }
 
   @Nonnull
-  public Set<String> getMetadataKeys() {
-    return metadata.keySet();
+  @Contract(pure = true)
+  public Stream<String> getMetadataKeys() {
+    return metadata.keySet().stream();
   }
 
   @Nonnull
@@ -123,6 +126,7 @@ public class OutputUser {
   }
 
   @Nonnull
+  @Contract(pure = true)
   public String getCsvRow(@Nonnull final Collection<String> metadataHeaders) {
     return StringEscapeUtils.escapeCsv(userId) + ',' +
            StringEscapeUtils.escapeCsv(userName) + ',' +
@@ -138,11 +142,13 @@ public class OutputUser {
   }
 
   @Nonnull
+  @Contract(pure = true)
   public Stream<OutputUserGroup> getGroups() {
     return userGroups.stream();
   }
 
   @Nonnull
+  @Contract(pure = true)
   public Stream<OutputUserRelationship> getRelationshipsHeld() {
     return userRelationships.stream();
   }

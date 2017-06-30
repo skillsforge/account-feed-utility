@@ -5,6 +5,8 @@ import com.skillsforge.accountfeeds.config.ProgramState;
 import com.skillsforge.accountfeeds.input.Patterns;
 import com.skillsforge.accountfeeds.outputmodels.OutputUser;
 
+import org.jetbrains.annotations.Contract;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +49,6 @@ public class InputUser {
   @Nullable
   private final String disabled;
 
-  @SuppressWarnings({"TypeMayBeWeakened", "OverlyComplexMethod"})
   public InputUser(@Nonnull final ProgramState state,
       @Nonnull final OrganisationParameters orgParams,
       @Nonnull final List<String> line,
@@ -55,26 +56,24 @@ public class InputUser {
     this.state = state;
     this.orgParams = orgParams;
 
-    final int lineSize = line.size();
-
-    if (lineSize < (metadataHeaders.size() + 8)) {
+    if (line.size() < (metadataHeaders.size() + 8)) {
       state.log(ERROR, "InputUser is incomplete as CSV line (%s) does not contain enough columns.",
           line.toString());
     }
-    if (lineSize > (metadataHeaders.size() + 8)) {
+    if (line.size() > (metadataHeaders.size() + 8)) {
       state.log(ERROR, "Users CSV line (%s) contains too many columns.", line.get(0));
     }
 
-    userId = (lineSize > 0) ? line.get(0) : null;
-    username = (lineSize > 1) ? line.get(1) : null;
-    email = (lineSize > 2) ? line.get(2) : null;
-    title = (lineSize > 3) ? line.get(3) : null;
-    forename = (lineSize > 4) ? line.get(4) : null;
-    surname = (lineSize > 5) ? line.get(5) : null;
-    archived = (lineSize > 6) ? line.get(6) : null;
-    disabled = (lineSize > 7) ? line.get(7) : null;
+    userId = CommonMethods.getFieldFromLine(line, 0);
+    username = CommonMethods.getFieldFromLine(line, 1);
+    email = CommonMethods.getFieldFromLine(line, 2);
+    title = CommonMethods.getFieldFromLine(line, 3);
+    forename = CommonMethods.getFieldFromLine(line, 4);
+    surname = CommonMethods.getFieldFromLine(line, 5);
+    archived = CommonMethods.getFieldFromLine(line, 6);
+    disabled = CommonMethods.getFieldFromLine(line, 7);
 
-    if (lineSize > 8) {
+    if (line.size() > 8) {
       final List<String> metaValues = line.subList(8, line.size());
       final int metaCount = Integer.max(metaValues.size(), metadataHeaders.size());
 
@@ -85,21 +84,25 @@ public class InputUser {
   }
 
   @Nullable
+  @Contract(pure = true)
   public String getUserId() {
     return userId;
   }
 
   @Nullable
+  @Contract(pure = true)
   public String getUsername() {
     return username;
   }
 
   @Nullable
+  @Contract(pure = true)
   public String getEmail() {
     return email;
   }
 
   @Nullable
+  @Contract(pure = true)
   public OutputUser validateAllFields() {
     final String oUserId =
         CommonMethods.validateMandatory(userId, Patterns::isValidUserId, "UserID", state, this);
@@ -117,9 +120,9 @@ public class InputUser {
     final String oSurname =
         CommonMethods.validateMandatory(surname, Patterns::isValidName, "Surname", state, this);
     final String oDisabled =
-        CommonMethods.validateTrueFalse(disabled, state, this, "Disabled", "false", "false");
+        CommonMethods.validateTrueFalse(disabled, state, this, "Disabled");
     final String oArchived =
-        CommonMethods.validateTrueFalse(archived, state, this, "Archived", "false", "false");
+        CommonMethods.validateTrueFalse(archived, state, this, "Archived");
 
     metaData.forEach((key, value) -> {
       final Pattern pattern = orgParams.getMetadataPattern(key);
@@ -142,6 +145,8 @@ public class InputUser {
   }
 
   @Override
+  @Nonnull
+  @Contract(pure = true)
   public String toString() {
     return String.format("User['%s','%s','%s','%s','%s','%s','%s','%s',meta=%s]", userId,
         username, email, title, forename, surname, archived, disabled, metaData.toString());

@@ -28,17 +28,18 @@ public final class Patterns {
     return isValidUserId(groupAlias);
   }
 
-  @Contract(value = "_ -> true", pure = true)
-  public static boolean isAlwaysValid(@Nonnull final CharSequence unused) {
-    return true;
-  }
-
   @Contract(value = "null -> false", pure = true)
   public static boolean isValidUserId(@Nullable final CharSequence userId) {
     if (userId == null) {
       return false;
     }
     return USER_ID_REGEX_V5.matcher(userId).matches();
+  }
+
+  @SuppressWarnings("unused")
+  @Contract(value = "_ -> true", pure = true)
+  public static boolean isAlwaysValid(@Nonnull final CharSequence unused) {
+    return true;
   }
 
   @Contract(value = "null -> false", pure = true)

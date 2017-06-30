@@ -17,13 +17,14 @@ import com.skillsforge.accountfeeds.outputmodels.OutputUser;
 import com.skillsforge.accountfeeds.outputmodels.OutputUserGroup;
 import com.skillsforge.accountfeeds.outputmodels.OutputUserRelationship;
 
+import org.jetbrains.annotations.Contract;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -182,12 +183,13 @@ public class MainProgram {
     state.log(INFO, "\n\nOutputting linted objects:\n==========================\n");
 
     // Users file
-    final Set<String> metadataKeys = new HashSet<>();
-    compiledUsers.forEach(outputUser -> metadataKeys.addAll(outputUser.getMetadataKeys()));
-
     final Collection<String> usersFileHeader = ParsedFeedFiles.getUsersHeaders();
     final Collection<String> metadataHeaders =
-        metadataKeys.stream().sorted().collect(Collectors.toList());
+        compiledUsers.stream()
+            .flatMap(OutputUser::getMetadataKeys)
+            .distinct()
+            .sorted(String::compareToIgnoreCase)
+            .collect(Collectors.toList());
     usersFileHeader.addAll(metadataHeaders);
 
     writeOutToFile(state, usersFileHeader, FileKey.OUTPUT_USERS,
@@ -287,6 +289,7 @@ public class MainProgram {
 
   }
 
+  @Contract(pure = true)
   public int getExitCode() {
     return exitCode;
   }

@@ -10,6 +10,8 @@ import com.skillsforge.accountfeeds.inputmodels.InputUser;
 import com.skillsforge.accountfeeds.inputmodels.InputUserGroup;
 import com.skillsforge.accountfeeds.inputmodels.InputUserRelationship;
 
+import org.jetbrains.annotations.Contract;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -99,26 +101,31 @@ public class ParsedFeedFiles {
   }
 
   @Nonnull
+  @Contract(pure = true)
   public static List<String> getUsersHeaders() {
     return new LinkedList<>(Arrays.asList(USERS_HEADERS_V5));
   }
 
   @Nonnull
+  @Contract(pure = true)
   public static List<String> getGroupsHeaders() {
     return new LinkedList<>(Arrays.asList(GROUPS_HEADERS_V5));
   }
 
   @Nonnull
+  @Contract(pure = true)
   public static List<String> getUserGroupsHeaders() {
     return new LinkedList<>(Arrays.asList(USER_GROUPS_HEADERS_V5));
   }
 
   @Nonnull
+  @Contract(pure = true)
   public static List<String> getUserRelationshipsHeaders() {
     return new LinkedList<>(Arrays.asList(USER_RELATIONSHIPS_HEADERS_V5));
   }
 
   @Nonnull
+  @Contract(pure = true)
   public static List<String> getGroupRolesHeaders() {
     return new LinkedList<>(Arrays.asList(GROUP_ROLES_HEADERS_V5));
   }

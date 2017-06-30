@@ -37,7 +37,6 @@ public class OutputGroup {
   @Nonnull
   private final Collection<String> roleNames = new HashSet<>();
 
-  @SuppressWarnings("BooleanParameter")
   public OutputGroup(@Nonnull final String groupAlias, @Nonnull final String groupName,
       @Nonnull final String groupDescription, final boolean delete) {
     this.groupAlias = groupAlias;
@@ -47,11 +46,14 @@ public class OutputGroup {
   }
 
   @Nonnull
+  @Contract(pure = true)
   public String getGroupAlias() {
     return groupAlias;
   }
 
   @Override
+  @Nonnull
+  @Contract(pure = true)
   public String toString() {
     return String.format("Group['%s','%s','%s','%s',roles=%s]", groupAlias, groupName,
         groupDescription, delete ? "true" : "false", groupRoles.toString());
@@ -67,13 +69,14 @@ public class OutputGroup {
     groupRoles.add(groupRole);
   }
 
-  @Contract(pure = true)
   @Nonnull
+  @Contract(pure = true)
   private String getSortString() {
     return groupAlias + ',' + groupName;
   }
 
   @Nonnull
+  @Contract(pure = true)
   public String getCsvRow() {
     return StringEscapeUtils.escapeCsv(groupAlias) + ',' +
            StringEscapeUtils.escapeCsv(groupName) + ',' +
@@ -82,6 +85,7 @@ public class OutputGroup {
   }
 
   @Nonnull
+  @Contract(pure = true)
   public Stream<OutputGroupRole> getRoles() {
     return groupRoles.stream();
   }

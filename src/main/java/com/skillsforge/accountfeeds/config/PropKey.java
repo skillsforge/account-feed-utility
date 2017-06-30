@@ -1,5 +1,10 @@
 package com.skillsforge.accountfeeds.config;
 
+import org.jetbrains.annotations.Contract;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 /**
  * @author aw1459
  * @date 26-May-2017
@@ -18,18 +23,24 @@ public enum PropKey {
   URL("url", null),
   TOKEN("token", null);
 
+  @Nonnull
   private final String argName;
+  @Nullable
   private final String fileDescription;
 
-  PropKey(final String cmdlineArg, String fileDesc) {
+  PropKey(@Nonnull final String cmdlineArg, @Nullable final String fileDesc) {
     this.argName = cmdlineArg;
     this.fileDescription = fileDesc;
   }
 
+  @Nonnull
+  @Contract(pure = true)
   public String argName() {
     return argName;
   }
 
+  @Nullable
+  @Contract(pure = true)
   public String getFileDescription() {
     return fileDescription;
   }

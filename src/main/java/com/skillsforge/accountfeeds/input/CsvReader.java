@@ -4,6 +4,7 @@ import com.skillsforge.accountfeeds.config.ProgramState;
 import com.skillsforge.accountfeeds.exceptions.CsvCheckedException;
 
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.jetbrains.annotations.Contract;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -35,6 +36,7 @@ public class CsvReader extends BufferedReader {
   }
 
   @Nonnull
+  @Contract(pure = true)
   public List<List<String>> readFile() throws IOException {
     final List<List<String>> fullFile = new LinkedList<>();
 
@@ -55,27 +57,9 @@ public class CsvReader extends BufferedReader {
     return Collections.unmodifiableList(new ArrayList<>(fullFile));
   }
 
-/*
-  // This doesn't work because you can get commas in the middle of values.  But it's a lovely
-  example of a lambda, so I left it in :)
-
-  private static final Pattern commentStripper = Pattern.compile("#.*$");
-  private static List<List<String>> readFileFromReader(@Nonnull final BufferedReader reader) {
-    return reader.lines()
-        .map(line -> commentStripper.matcher(line).replaceAll(""))
-        .map(String::trim)
-        .filter(line -> !line.isEmpty())
-        .map(line -> Arrays.stream(line.split(",")).parallel()
-            .map(StringEscapeUtils::unescapeCsv)
-            .map(String::trim)
-            .collect(Collectors.toList()))
-        .collect(Collectors.toList());
-  }
-*/
-
+  @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod"})
   @Nullable
-  public List<String> parseLine()
-      throws IOException, CsvCheckedException {
+  public List<String> parseLine() throws IOException, CsvCheckedException {
 
     final List<String> result = new LinkedList<>();
     CsvStates stateMachine = CsvStates.START_OF_FIELD;
@@ -98,6 +82,7 @@ public class CsvReader extends BufferedReader {
         return null;
       }
 
+      //noinspection SwitchStatementDensity
       switch (stateMachine) {
         case START_OF_FIELD:
           if ((nextRead == -1) || (nextChar == '\n')) {
@@ -117,6 +102,7 @@ public class CsvReader extends BufferedReader {
             stateMachine = CsvStates.LEXING_UNQUOTED_FIELD;
           }
           break;
+
         case LEXING_UNQUOTED_FIELD:
           if ((nextRead == -1) || (nextChar == '\n')) {
             lineNum++;
@@ -139,6 +125,7 @@ public class CsvReader extends BufferedReader {
             thisField.append(nextChar);
           }
           break;
+
         case LEXING_QUOTED_FIELD:
           if (nextRead == -1) {
             state.log(ERROR, "CSV (Line %d, Field %d): Unterminated quoted field.",
@@ -159,6 +146,7 @@ public class CsvReader extends BufferedReader {
             thisField.append(nextChar);
           }
           break;
+
         case ENDING_QUOTED_FIELD:
           if ((nextRead == -1) || (nextChar == '\n')) {
             lineNum++;

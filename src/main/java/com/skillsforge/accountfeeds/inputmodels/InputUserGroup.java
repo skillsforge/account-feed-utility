@@ -4,6 +4,8 @@ import com.skillsforge.accountfeeds.config.ProgramState;
 import com.skillsforge.accountfeeds.input.Indexes;
 import com.skillsforge.accountfeeds.outputmodels.OutputUserGroup;
 
+import org.jetbrains.annotations.Contract;
+
 import java.util.List;
 
 import javax.annotation.Nonnull;
@@ -16,7 +18,6 @@ import static com.skillsforge.accountfeeds.config.LogLevel.ERROR;
  * @date 27-May-2017
  */
 public class InputUserGroup {
-  // {"GroupAlias", "RoleAlias"};
   @SuppressWarnings("FieldNotUsedInToString")
   @Nonnull
   private final ProgramState state;
@@ -25,24 +26,21 @@ public class InputUserGroup {
   @Nullable
   private final String groupAlias;
 
-  @SuppressWarnings("TypeMayBeWeakened")
   public InputUserGroup(@Nonnull final ProgramState state, @Nonnull final List<String> line) {
     this.state = state;
 
-    final int lineSize = line.size();
-
-    if (lineSize < 2) {
+    if (line.size() < 2) {
       state.log(ERROR, "InputUserGroup is incomplete as CSV line (%s) does not contain enough "
                        + "columns.",
           line.toString());
     }
-    if (lineSize > 2) {
+    if (line.size() > 2) {
       state.log(ERROR, "InputUserGroup CSV line (%s) contains too many columns.",
           line.toString());
     }
 
-    userId = (lineSize > 0) ? line.get(0) : null;
-    groupAlias = (lineSize > 1) ? line.get(1) : null;
+    userId = CommonMethods.getFieldFromLine(line, 0);
+    groupAlias = CommonMethods.getFieldFromLine(line, 1);
   }
 
   @Nullable
@@ -57,6 +55,8 @@ public class InputUserGroup {
   }
 
   @Override
+  @Nonnull
+  @Contract(pure = true)
   public String toString() {
     return String.format("UserGroup['%s','%s']", userId, groupAlias);
   }

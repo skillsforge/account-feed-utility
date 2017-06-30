@@ -28,27 +28,31 @@ public class OutputGroupRole {
   }
 
   @Nonnull
+  @Contract(pure = true)
   public String getGroupAlias() {
     return groupAlias;
   }
 
   @Nonnull
+  @Contract(pure = true)
   public String getRoleAlias() {
     return roleAlias;
   }
 
   @Override
+  @Contract(pure = true)
   public String toString() {
     return String.format("Group->Role['%s'->'%s']", groupAlias, roleAlias);
   }
 
-  @Contract(pure = true)
   @Nonnull
+  @Contract(pure = true)
   private String getSortString() {
     return groupAlias + ',' + roleAlias;
   }
 
   @Nonnull
+  @Contract(pure = true)
   public String getCsvRow() {
     return StringEscapeUtils.escapeCsv(groupAlias) + ',' +
            StringEscapeUtils.escapeCsv(roleAlias);

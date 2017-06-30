@@ -6,6 +6,7 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.jetbrains.annotations.Contract;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -29,10 +30,14 @@ import static com.skillsforge.accountfeeds.config.LogLevel.ERROR;
  */
 public class ProgramState {
 
+  @Nonnull
   private static final String ENV_SF_TOKEN = "SF_TOKEN";
 
+  @Nonnull
   private static final Options checkOptions = new Options();
+  @Nonnull
   private static final Options lintOptions = new Options();
+  @Nonnull
   private static final Options uploadOptions = new Options();
 
   static {
@@ -96,6 +101,7 @@ public class ProgramState {
   private final Map<FileKey, File> files = new EnumMap<>(FileKey.class);
   @Nonnull
   private final PrintStream outputLogStream;
+  @Nonnull
   private final Collection<LogLine> allLogLines = new LinkedList<>();
   @Nonnull
   private ProgramMode programMode = ProgramMode.HELP;
@@ -105,6 +111,7 @@ public class ProgramState {
     outputLogStream = System.out;
   }
 
+  @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod"})
   public ProgramState(final String[] programArgs) {
 
     // Presume the user doesn't know how to call the program
@@ -205,7 +212,8 @@ public class ProgramState {
 
   @SuppressWarnings("OverlyComplexMethod")
   @Nullable
-  private File openFileWithAccessCheck(final FileKey fileKey) {
+  @Contract(pure = true, value = "null -> null")
+  private File openFileWithAccessCheck(@Nullable final FileKey fileKey) {
     if (fileKey == null) {
       return null;
     }
@@ -250,6 +258,7 @@ public class ProgramState {
     return file;
   }
 
+  @Contract(pure = true)
   private static boolean hasAccess(@Nonnull final AccessType accessType, @Nonnull final File file) {
     switch (accessType) {
       case READ_DIR:
@@ -312,20 +321,24 @@ public class ProgramState {
   }
 
   @Nullable
+  @Contract(pure = true, value = "null -> null")
   public File getFile(@Nullable final FileKey key) {
     return files.get(key);
   }
 
   @Nonnull
+  @Contract(pure = true)
   public ProgramMode getProgramMode() {
     return programMode;
   }
 
+  @Contract(pure = true)
   public boolean hasFatalErrorBeenEncountered() {
     return this.fatalErrorEncountered;
   }
 
   @Nullable
+  @Contract(pure = true, value = "null -> null")
   public String getProperty(@Nullable final PropKey key) {
     return properties.get(key);
   }

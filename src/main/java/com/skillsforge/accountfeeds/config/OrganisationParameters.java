@@ -1,5 +1,6 @@
 package com.skillsforge.accountfeeds.config;
 
+import org.jetbrains.annotations.Contract;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -34,8 +35,10 @@ public class OrganisationParameters {
   private static final long MINIMUM_SUPPORTED_TARGET_VERSION = 5_009_012L;
   private static final int STATE_CONFIG_VERSION = 1;
 
+  @Nonnull
   private static final Set<String> defaultGroupRoles =
       new HashSet<>(Arrays.asList("ROLE_PGR", "ROLE_EM_PROVIDER", "ROLE_EM_FACILITATOR"));
+  @Nonnull
   private static final Set<String> defaultRelationshipRoles =
       new HashSet<>(Arrays.asList("ROLE_GRADADMIN", "ROLE_SUPERVISOR"));
   @Nonnull
@@ -49,7 +52,9 @@ public class OrganisationParameters {
   private int targetVersionMinor = 9;
   private int targetVersionRevision = 12;
   private long targetVersion = 5_009_012L;
+  @Nonnull
   private String organisation = "DEFAULT";
+  @Nonnull
   private String organisationName = "a Default SkillsForge Instance";
 
   public OrganisationParameters(@Nonnull final ProgramState state) {
@@ -130,40 +135,51 @@ public class OrganisationParameters {
   }
 
   @Nonnull
+  @Contract(pure = true)
   public Set<String> getGroupRoles() {
     return Collections.unmodifiableSet(groupRoles);
   }
 
   @Nonnull
+  @Contract(pure = true)
   public Set<String> getRelationshipRoles() {
     return Collections.unmodifiableSet(relationshipRoles);
   }
 
+  @Contract(pure = true)
   public int getTargetVersionMajor() {
     return targetVersionMajor;
   }
 
+  @Contract(pure = true)
   public int getTargetVersionMinor() {
     return targetVersionMinor;
   }
 
+  @Contract(pure = true)
   public int getTargetVersionRevision() {
     return targetVersionRevision;
   }
 
+  @Contract(pure = true)
   public long getTargetVersion() {
     return targetVersion;
   }
 
+  @Nonnull
+  @Contract(pure = true)
   public String getOrganisation() {
     return organisation;
   }
 
+  @Nonnull
+  @Contract(pure = true)
   public String getOrganisationName() {
     return organisationName;
   }
 
   @Nullable
+  @Contract(pure = true)
   public Pattern getMetadataPattern(@Nonnull final String key) {
     return metadataPatternMap.get(key.toLowerCase());
   }

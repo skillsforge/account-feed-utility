@@ -4,6 +4,8 @@ import com.skillsforge.accountfeeds.config.ProgramState;
 import com.skillsforge.accountfeeds.input.Patterns;
 import com.skillsforge.accountfeeds.outputmodels.OutputGroup;
 
+import org.jetbrains.annotations.Contract;
+
 import java.util.List;
 
 import javax.annotation.Nonnull;
@@ -17,7 +19,6 @@ import static com.skillsforge.accountfeeds.config.LogLevel.WARN;
  * @date 27-May-2017
  */
 public class InputGroup {
-
   @SuppressWarnings("FieldNotUsedInToString")
   @Nonnull
   private final ProgramState state;
@@ -30,38 +31,38 @@ public class InputGroup {
   @Nullable
   private final String delete;
 
-  @SuppressWarnings("TypeMayBeWeakened")
   public InputGroup(@Nonnull final ProgramState state, @Nonnull final List<String> line) {
     this.state = state;
 
-    final int lineSize = line.size();
-
-    if (lineSize < 4) {
+    if (line.size() < 4) {
       state.log(ERROR,
           "InputGroup is incomplete as CSV line (%s) does not contain enough columns.",
           line.toString());
     }
-    if (lineSize > 4) {
+    if (line.size() > 4) {
       state.log(ERROR, "InputGroup CSV line (%s) contains too many columns.", line.toString());
     }
 
-    groupAlias = (lineSize > 0) ? line.get(0) : null;
-    groupName = (lineSize > 1) ? line.get(1) : null;
-    groupDescription = (lineSize > 2) ? line.get(2) : null;
-    delete = (lineSize > 3) ? line.get(3) : null;
+    groupAlias = CommonMethods.getFieldFromLine(line, 0);
+    groupName = CommonMethods.getFieldFromLine(line, 1);
+    groupDescription = CommonMethods.getFieldFromLine(line, 2);
+    delete = CommonMethods.getFieldFromLine(line, 3);
   }
 
   @Nullable
+  @Contract(pure = true)
   public String getGroupAlias() {
     return groupAlias;
   }
 
   @Nullable
+  @Contract(pure = true)
   public String getGroupName() {
     return groupName;
   }
 
   @Nullable
+  @Contract(pure = true)
   public OutputGroup validateAllFields() {
     final String oGroupAlias =
         CommonMethods.validateMandatory(groupAlias, Patterns::isValidGroupAlias, "GroupAlias",
@@ -73,8 +74,7 @@ public class InputGroup {
         CommonMethods.validateNonMandatory(groupDescription, Patterns::isAlwaysValid,
             "GroupDescription", state, this, false);
     final String oDelete =
-        CommonMethods.validateTrueFalse(delete, state, this,
-            "Delete", "false", "false");
+        CommonMethods.validateTrueFalse(delete, state, this, "Delete");
 
     if (oGroupAlias == null) {
       return null;
@@ -91,6 +91,8 @@ public class InputGroup {
   }
 
   @Override
+  @Nonnull
+  @Contract(pure = true)
   public String toString() {
     return String.format("Group['%s','%s','%s','%s']", groupAlias, groupName, groupDescription,
         delete);

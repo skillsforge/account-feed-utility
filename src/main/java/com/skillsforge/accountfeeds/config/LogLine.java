@@ -1,5 +1,7 @@
 package com.skillsforge.accountfeeds.config;
 
+import org.jetbrains.annotations.Contract;
+
 import java.io.PrintStream;
 
 import javax.annotation.Nonnull;
@@ -29,28 +31,30 @@ public class LogLine {
     this.lintable = lintable;
   }
 
-  public LogLine(@Nonnull final LogLevel lvl, @Nonnull final String fmt, final Object... args) {
+  public LogLine(@Nonnull final LogLevel lvl, @Nonnull final String fmt,
+      @Nonnull final Object... args) {
     errorString = String.format(fmt, args);
     level = lvl;
     this.lintable = false;
   }
 
   public LogLine(@Nonnull final LogLevel lvl, final boolean lintable, @Nonnull final String fmt,
-      final Object... args) {
+      @Nonnull final Object... args) {
     errorString = String.format(fmt, args);
     level = lvl;
     this.lintable = lintable;
   }
 
   public void outputLogLine(final PrintStream stream) {
-
     stream.printf("[%s%s] %s\n", level.name(), lintable ? "-LINTABLE" : "", errorString);
   }
 
+  @Contract(pure = true)
   public boolean isError() {
     return level == LogLevel.ERROR;
   }
 
+  @Contract(pure = true)
   public boolean isWarning() {
     return level == LogLevel.WARN;
   }
