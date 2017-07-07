@@ -75,6 +75,31 @@
       </plugin>
 
       <plugin>
+        <groupId>pl.project13.maven</groupId>
+        <artifactId>git-commit-id-plugin</artifactId>
+        <version>2.2.2</version>
+        <executions>
+          <execution>
+            <id>get-git-revision</id>
+            <goals>
+              <goal>revision</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <prefix>git</prefix>
+          <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
+          <dateFormat>yyyy-MM-dd HH:mm:ss z</dateFormat>
+          <dateFormatTimeZone>${user.timezone}</dateFormatTimeZone>
+          <commitIdGenerationMode>full</commitIdGenerationMode>
+          <gitDescribe>
+            <dirty>-with-uncommitted-changes</dirty>
+            <tags>true</tags>
+          </gitDescribe>
+        </configuration>
+      </plugin>
+
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
         <version>3.0.0</version>
@@ -87,9 +112,10 @@
           </execution>
         </executions>
         <configuration>
-          <finalName>${project.artifactId}-${project.version}-bundle</finalName>
+          <finalName>${project.artifactId}-${project.version}-uberjar-${git.commit.id.abbrev}</finalName>
         </configuration>
       </plugin>
+
     </plugins>
   </build>
 
