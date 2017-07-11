@@ -34,12 +34,12 @@ public class CsvReaderUnitTest {
       final List<List<String>> result = csvReader.readFile();
 
       Assert.assertNotNull(result, "ListList was null");
-      Assert.assertEquals(result.size(), 16, "Wrong number of elements");
+      Assert.assertEquals(result.size(), 18, "Wrong number of elements");
       Assert.assertEquals(result.get(2), Collections.emptyList(),
           "'\\n' isn't represented as an empty list.");
       Assert.assertEquals(result.stream().filter(Objects::isNull).count(), 0,
           "Some results were null.");
-      Assert.assertEquals(result.stream().mapToLong(Collection::size).sum(), 28,
+      Assert.assertEquals(result.stream().mapToLong(Collection::size).sum(), 60,
           "Wrong number of total fields returned.");
     }
   }
@@ -67,7 +67,14 @@ public class CsvReaderUnitTest {
     stringBuilder.append("# comment line, with \" many # odd ,\"\'\"\" characters in.\n");
     stringBuilder.append("# comment line, with \" many # odd ,\"\'\"\" characters in.\n");
     stringBuilder.append("\"\"\"\"\n");
-    stringBuilder.append(StringEscapeUtils.escapeCsv("bob \"wonderful\" smith"));
+    stringBuilder.append(StringEscapeUtils.escapeCsv("bob \"wonderful\" smith")).append('\n');
+    stringBuilder.append("0,0,N,").append(
+        StringEscapeUtils.escapeCsv("\"The Ill-Shaped Monster\": Representing the 'Rotten "
+                                    + "Borough', 1783-1818")).append('\n');
+    stringBuilder.append("333333333,xxxxx,xxxxx@york.ac.uk,AAAA,XXXXX,XXX,false,false,false,"
+                         + "X,W,XXX,N,aaaaaaaaa,11-XXX-XX,11-XXX-XX,1,1,PHD,1,11/11/1111,"
+                         + "11/11/1111,11/11/1111,11/11/1111,0,0,N,\"\"\"The Ill-Shaped "
+                         + "Monster\"\": Representing the 'Rotten Borough', 1783-1818\"\n");
     return stringBuilder;
   }
 
@@ -128,57 +135,82 @@ public class CsvReaderUnitTest {
       Assert.assertNotNull(line9, "List was null");
       Assert.assertEquals(line9.size(), 2, "Wrong number of elements");
       Assert.assertNotNull(line9.get(0), "String was null");
-      Assert.assertEquals(line9.get(0), "tricky'input", "Empty field didn't yield empty string.");
+      Assert.assertEquals(line9.get(0), "tricky'input",
+          "Apostrophe (') character was mis-interpreted.");
 
       final List<String> line10 = csvReader.parseLine();
       Assert.assertNotNull(line10, "List was null");
       Assert.assertEquals(line10.size(), 2, "Wrong number of elements");
       Assert.assertNotNull(line10.get(0), "String was null");
-      Assert.assertEquals(line10.get(0), "tricky\"input", "Empty field didn't yield empty string.");
+      Assert.assertEquals(line10.get(0), "tricky\"input",
+          "Interstitial quotation mark (\") was mis-interpreted.");
 
       final List<String> line11 = csvReader.parseLine();
       Assert.assertNotNull(line11, "List was null");
       Assert.assertEquals(line11.size(), 2, "Wrong number of elements");
       Assert.assertNotNull(line11.get(0), "String was null");
-      Assert.assertEquals(line11.get(0), "tricky,input", "Empty field didn't yield empty string.");
+      Assert.assertEquals(line11.get(0), "tricky,input",
+          "Interstitial comma (,) was mis-interpreted.");
 
       final List<String> line12 = csvReader.parseLine();
       Assert.assertNotNull(line12, "List was null");
       Assert.assertEquals(line12.size(), 2, "Wrong number of elements");
       Assert.assertNotNull(line12.get(0), "String was null");
       Assert.assertEquals(line12.get(0), "tricky\"\"input",
-          "Empty field didn't yield empty string.");
+          "Pair of quotation marks (\"\") was mis-interpreted.");
 
       final List<String> line13 = csvReader.parseLine();
       Assert.assertNotNull(line13, "List was null");
       Assert.assertEquals(line13.size(), 2, "Wrong number of elements");
       Assert.assertNotNull(line13.get(0), "String was null");
       Assert.assertEquals(line13.get(0), "tricky\",\"input",
-          "Empty field didn't yield empty string.");
+          "Sequence \",\" was mis-interpreted.");
 
       final List<String> line14 = csvReader.parseLine();
       Assert.assertNotNull(line14, "List was null");
       Assert.assertEquals(line14.size(), 2, "Wrong number of elements");
       Assert.assertNotNull(line14.get(0), "String was null");
       Assert.assertEquals(line14.get(0), "\"aꜬbꜢd\uD801\uDF22e∛f\"",
-          "Empty field didn't yield empty string.");
+          "Quoted unicode characters caused problems.");
 
       final List<String> line15 = csvReader.parseLine();
       Assert.assertNotNull(line15, "List was null");
       Assert.assertEquals(line15.size(), 1, "Wrong number of elements");
       Assert.assertNotNull(line15.get(0), "String was null");
       Assert.assertEquals(line15.get(0), "\"",
-          "Empty field didn't yield empty string.");
+          "The raw field \"\"\"\" didn't get unescaped to a single \" character.");
 
       final List<String> line16 = csvReader.parseLine();
       Assert.assertNotNull(line16, "List was null");
       Assert.assertEquals(line16.size(), 1, "Wrong number of elements");
       Assert.assertNotNull(line16.get(0), "String was null");
       Assert.assertEquals(line16.get(0), "bob \"wonderful\" smith",
-          "Empty field didn't yield empty string.");
+          "An interstitially quoted string was mis-interpreted.");
 
       final List<String> line17 = csvReader.parseLine();
-      Assert.assertNull(line17, "Reading past end of file didn't result in null");
+      Assert.assertNotNull(line17, "List was null");
+      Assert.assertEquals(line17.size(), 4, "Wrong number of elements");
+      Assert.assertNotNull(line17.get(0), "String was null");
+      Assert.assertEquals(line17.get(0), "0",
+          "Normal single-character string was not pulled out successfully.");
+      Assert.assertNotNull(line17.get(3), "String with many quotations was null.");
+      Assert.assertEquals(line17.get(3), "\"The Ill-Shaped Monster\": Representing the 'Rotten "
+                                         + "Borough', 1783-1818",
+          "Interstitial quotation marks at the beginning of the string caused an issue.");
+
+      final List<String> line18 = csvReader.parseLine();
+      Assert.assertNotNull(line18, "List was null");
+      Assert.assertEquals(line18.size(), 28, "Wrong number of elements");
+      Assert.assertNotNull(line18.get(0), "String was null");
+      Assert.assertEquals(line18.get(0), "333333333",
+          "Made-up stucode was not pulled out successfully.");
+      Assert.assertNotNull(line18.get(27), "String with many quotations was null.");
+      Assert.assertEquals(line18.get(27), "\"The Ill-Shaped Monster\": Representing the 'Rotten "
+                                         + "Borough', 1783-1818",
+          "Interstitial quotation marks at the beginning of the string caused an issue.");
+
+      final List<String> line19 = csvReader.parseLine();
+      Assert.assertNull(line19, "Reading past end of file didn't result in null");
     }
   }
 }

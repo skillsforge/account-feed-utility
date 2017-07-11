@@ -75,7 +75,7 @@ public class InputUser {
 
     if (line.size() > 8) {
       final List<String> metaValues = line.subList(8, line.size());
-      final int metaCount = Integer.max(metaValues.size(), metadataHeaders.size());
+      final int metaCount = Integer.min(metaValues.size(), metadataHeaders.size());
 
       for (int valNum = 0; valNum < metaCount; valNum++) {
         metaData.put(metadataHeaders.get(valNum), metaValues.get(valNum));

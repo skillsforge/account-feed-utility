@@ -4,6 +4,7 @@ import com.skillsforge.accountfeeds.config.FileKey;
 import com.skillsforge.accountfeeds.config.OrganisationParameters;
 import com.skillsforge.accountfeeds.config.ProgramMode;
 import com.skillsforge.accountfeeds.config.ProgramState;
+import com.skillsforge.accountfeeds.config.PropKey;
 import com.skillsforge.accountfeeds.input.Indexes;
 import com.skillsforge.accountfeeds.input.ParsedFeedFiles;
 import com.skillsforge.accountfeeds.inputmodels.InputGroup;
@@ -21,10 +22,17 @@ import org.jetbrains.annotations.Contract;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -38,6 +46,9 @@ import static com.skillsforge.accountfeeds.config.LogLevel.INFO;
  * @date 26-May-2017
  */
 public class MainProgram {
+
+  @Nonnull
+  private static final String CR_LF = "\r\n";
 
   private int exitCode = 0;
 
@@ -91,7 +102,7 @@ public class MainProgram {
     }
 
     if (state.getProgramMode() == ProgramMode.UPLOAD) {
-      upload();
+      upload(state, orgParams);
     }
 
     state.renderLog();
@@ -285,8 +296,61 @@ public class MainProgram {
     state.log(INFO, " ... %s file written successfully.", fileType.getFileDescription());
   }
 
-  private static void upload() {
+  private static void upload(@Nonnull final ProgramState state,
+      @Nonnull final OrganisationParameters orgParams) {
 
+    final String token = state.getProperty(PropKey.TOKEN);
+    final String url = state.getProperty(PropKey.URL);
+
+    if (url == null) {
+      state.log(ERROR, "The URL to upload the feed files to was not specified.");
+      state.setFatalErrorEncountered();
+    }
+    if (token == null) {
+      state.log(ERROR,
+          "The token for authenticating with the SkillsForge instance was not specified.  This "
+          + "can be specified either on the command line, or within the '%s' environment variable.",
+          ProgramState.ENV_SF_TOKEN);
+      state.setFatalErrorEncountered();
+    }
+    if (state.hasFatalErrorBeenEncountered()) {
+      return;
+    }
+
+    assert url != null;
+    assert token != null;
+
+    final URLConnection urlConnection;
+    try {
+      urlConnection = new URL(url).openConnection();
+    } catch (IOException e) {
+      state.log(ERROR, "Could not open connection to URL: %s\n  %s", url, e.getLocalizedMessage());
+      state.setFatalErrorEncountered();
+      return;
+    }
+    urlConnection.setDoOutput(true);
+    final String multipartBoundary = "next-file-boundary-" + UUID.randomUUID();
+    urlConnection.setRequestProperty("Content-Type",
+        "multipart/form-data; charset=utf-8; boundary=" + multipartBoundary);
+
+    final File usersFile = state.getFile(FileKey.INPUT_USERS);
+    if (usersFile == null) {
+      state.log(ERROR, "No Users.csv file was specified.");
+      state.setFatalErrorEncountered();
+      return;
+    }
+
+    try (OutputStream outputStream = urlConnection.getOutputStream();
+         PrintWriter httpOut = new PrintWriter(new OutputStreamWriter(outputStream, "UTF-8"))) {
+      httpOut.append("--").append(multipartBoundary).append(CR_LF);
+      httpOut.append("Content-Disposition: form-data; name=\"param\"").append(CR_LF);
+      httpOut.append("Content-Type: text/plain; charset=UTF-8").append(CR_LF);
+      httpOut.append(CR_LF).append("").append(CR_LF).flush();
+    } catch (UnsupportedEncodingException e) {
+
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
   @Contract(pure = true)

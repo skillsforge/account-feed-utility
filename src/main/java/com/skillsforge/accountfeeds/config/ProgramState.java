@@ -31,7 +31,7 @@ import static com.skillsforge.accountfeeds.config.LogLevel.ERROR;
 public class ProgramState {
 
   @Nonnull
-  private static final String ENV_SF_TOKEN = "SF_TOKEN";
+  public static final String ENV_SF_TOKEN = "SF_TOKEN";
 
   @Nonnull
   private static final Options checkOptions = new Options();
@@ -362,11 +362,8 @@ public class ProgramState {
   }
 
   public void renderLog() {
-    outputLogStream.printf("+========================\n"
-                           + "| Results:\n"
-                           + "|  + Warnings: [%d]\n"
-                           + "|  + Errors: [%d]\n"
-                           + "+=======================\n\n",
+    outputLogStream.printf("Feed Utility Results: Warnings: [%d], Errors: [%d]\n"
+                           + "=========================================================\n\n",
         allLogLines.stream().filter(LogLine::isWarning).count(),
         allLogLines.stream().filter(LogLine::isError).count()
     );
