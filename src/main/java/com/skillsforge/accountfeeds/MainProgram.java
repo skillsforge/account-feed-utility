@@ -64,6 +64,10 @@ public class MainProgram {
       exitCode = 1;
       return;
     }
+    if (state.getProgramMode() == ProgramMode.HELP) {
+      exitCode = 1;
+      return;
+    }
 
     // Configuration specific to the current organisation.  Defines the available group and
     // relationship roles that a feed could assign users into, as well as version information for
