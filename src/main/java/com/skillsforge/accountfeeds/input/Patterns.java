@@ -15,11 +15,25 @@ import javax.annotation.Nullable;
 public final class Patterns {
 
   private static final Pattern USER_ID_REGEX_V5 = Pattern.compile("\\A[\\p{Alnum}'-:@_.]+\\z");
+
   private static final Pattern USERNAME_REGEX_V5 = Pattern.compile("\\A[\\p{L}\\p{Graph}]+\\z");
-  private static final Pattern EMAIL_REGEX_V5 =
+
+  private static final Pattern EMAIL_REGEX_V5_9_AND_BELOW =
       Pattern.compile("\\A[\\p{L}\\p{Graph}&&[^@]]+@[\\p{L}\\p{Graph}&&[^@]]+\\z");
-  private static final Pattern NAME_REGEX_V5_9 = Pattern.compile("[\\p{L}\\p{Graph} ]+");
-  private static final Pattern NAME_REGEX_V5_10 = Pattern.compile("\\A[\\p{L}\\p{Graph} ]+\\z");
+  private static final Pattern EMAIL_REGEX_V5_10_BETA_5 =
+      Pattern.compile(
+          "\\A"
+          // Prevent '.' appearing at beginning, end, or more than one in sequence, in local part.
+          + "[a-zA-Z0-9!#$%&'*+\\-/=?^_`{|}~](\\.?[a-zA-Z0-9!#$%&'*+\\-/=?^_`{|}~]+)*"
+          + '@'
+          // Domain part has smaller range of permissible characters, but same '.' requirement.
+          + "[a-zA-Z0-9\\-]+(\\.[a-zA-Z0-9\\-]+)*"
+          + "\\z");
+
+  private static final Pattern NAME_REGEX_V5_9_AND_BELOW =
+      Pattern.compile("[\\p{L}\\p{Graph} ]+");
+  private static final Pattern NAME_REGEX_V5_10_BETA_5 =
+      Pattern.compile("\\A[\\p{L}\\p{Graph} ]+\\z");
 
   private final long targetVersion;
 
@@ -59,7 +73,9 @@ public final class Patterns {
     if (email == null) {
       return false;
     }
-    return EMAIL_REGEX_V5.matcher(email).matches();
+    return (targetVersion >= 5_010_000_005L)
+           ? EMAIL_REGEX_V5_10_BETA_5.matcher(email).matches()
+           : EMAIL_REGEX_V5_9_AND_BELOW.matcher(email).matches();
   }
 
   @Contract(value = "null -> false", pure = true)
@@ -67,8 +83,8 @@ public final class Patterns {
     if (name == null) {
       return false;
     }
-    return (targetVersion >= 5_010_000L)
-           ? NAME_REGEX_V5_10.matcher(name).matches()
-           : NAME_REGEX_V5_9.matcher(name).matches();
+    return (targetVersion >= 5_010_000_005L)
+           ? NAME_REGEX_V5_10_BETA_5.matcher(name).matches()
+           : NAME_REGEX_V5_9_AND_BELOW.matcher(name).matches();
   }
 }

@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -32,7 +33,7 @@ import static com.skillsforge.accountfeeds.config.LogLevel.WARN;
 @SuppressWarnings("TypeMayBeWeakened")
 public class OrganisationParameters {
 
-  private static final long MINIMUM_SUPPORTED_TARGET_VERSION = 5_009_012L;
+  private static final long MINIMUM_SUPPORTED_TARGET_VERSION = 5_009_012_000L;
   private static final int STATE_CONFIG_VERSION = 1;
 
   @Nonnull
@@ -42,16 +43,20 @@ public class OrganisationParameters {
   private static final Set<String> defaultRelationshipRoles =
       new HashSet<>(Arrays.asList("ROLE_GRADADMIN", "ROLE_SUPERVISOR"));
   @Nonnull
+  private final Map<String, Integer> seatCountLimits = new HashMap<>();
+  @Nonnull
+  private final Map<String, Map<String, Integer>> minimumRequiredRelationships = new HashMap<>();
+  @Nonnull
   private final Set<String> groupRoles = new HashSet<>();
   @Nonnull
   private final Set<String> relationshipRoles = new HashSet<>();
   @Nonnull
   private final Map<String, Pattern> metadataPatternMap = new HashMap<>();
-
   private int targetVersionMajor = 5;
   private int targetVersionMinor = 9;
   private int targetVersionRevision = 12;
-  private long targetVersion = 5_009_012L;
+  private int targetVersionBetaLevel = 0;
+  private long targetVersion = 5_009_012_000L;
   @Nonnull
   private String organisation = "DEFAULT";
   @Nonnull
@@ -85,16 +90,51 @@ public class OrganisationParameters {
       targetVersionMajor = sfTargetVersion.getInt("major");
       targetVersionMinor = sfTargetVersion.getInt("minor");
       targetVersionRevision = sfTargetVersion.getInt("revision");
+      targetVersionBetaLevel = sfTargetVersion.getInt("betaLevel");
+      //noinspection OverlyComplexArithmeticExpression
       targetVersion =
-          (((targetVersionMajor * 1000L) + targetVersionMinor) * 1000L) + targetVersionRevision;
+          (((((targetVersionMajor * 1000L)
+              + targetVersionMinor) * 1000L)
+            + targetVersionRevision) * 1000L)
+          + targetVersionBetaLevel;
       if (targetVersion < MINIMUM_SUPPORTED_TARGET_VERSION) {
         state.log(WARN, "The version of the SkillsForge instance this configuration targets "
-                        + "(v%d.%d.%d) is older than this utility can provide for.\n",
-            targetVersionMajor, targetVersionMinor, targetVersionRevision);
+                        + "(v%d.%d.%d-%d) is older than this utility can provide for.\n",
+            targetVersionMajor, targetVersionMinor, targetVersionRevision, targetVersionBetaLevel);
       }
 
       organisation = stateConfig.getString("organisation");
       organisationName = stateConfig.getString("organisationName");
+
+      if (stateConfig.has("usersContributingToLicence")) {
+        final JSONObject licencedUsersObject =
+            stateConfig.getJSONObject("usersContributingToLicence");
+
+        licencedUsersObject
+            .keys()
+            .forEachRemaining(
+                key -> seatCountLimits.putIfAbsent(key, licencedUsersObject.getInt(key)));
+      }
+
+      if (stateConfig.has("minimumRequiredRelationships")) {
+        final JSONObject minRequiredRelsObject =
+            stateConfig.getJSONObject("minimumRequiredRelationships");
+
+        minimumRequiredRelationships.putAll(
+            minRequiredRelsObject.keySet().stream().collect(Collectors.toMap(
+                subjectRole -> subjectRole,
+                subjectRole -> {
+                  final JSONObject holderRoleCounts =
+                      minRequiredRelsObject.getJSONObject(subjectRole);
+
+                  return holderRoleCounts.keySet().stream().collect(Collectors.toMap(
+                      holderRole -> holderRole,
+                      holderRoleCounts::getInt
+                  ));
+                }
+            ))
+        );
+      }
 
       final JSONArray jsonRelationshipRoles = stateConfig.getJSONArray("relationshipRoles");
       final JSONArray jsonGroupRoles = stateConfig.getJSONArray("groupRoles");
@@ -129,9 +169,9 @@ public class OrganisationParameters {
     }
 
     state.log(INFO, "Using state file provided for: "
-                    + "%s (%s) targeting SkillsForge version %d.%d.%d.\n",
+                    + "%s (%s) targeting SkillsForge version %d.%d.%d-%d.\n",
         organisationName, organisation, targetVersionMajor, targetVersionMinor,
-        targetVersionRevision);
+        targetVersionRevision, targetVersionBetaLevel);
   }
 
   @Nonnull
@@ -159,6 +199,11 @@ public class OrganisationParameters {
   @Contract(pure = true)
   public int getTargetVersionRevision() {
     return targetVersionRevision;
+  }
+
+  @Contract(pure = true)
+  public int getTargetVersionBetaLevel() {
+    return targetVersionBetaLevel;
   }
 
   @Contract(pure = true)

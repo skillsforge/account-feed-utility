@@ -2,8 +2,9 @@
   "stateFileVersion": 1,
   "sfTargetVersion": {
     "major": 5,
-    "minor": 9,
-    "revision": 13
+    "minor": 10,
+    "revision": 0,
+    "betaLevel": 4
   },
   "organisation": "YORK",
   "organisationName": "The University of York",
@@ -115,11 +116,14 @@
   "usersContributingToLicence": {
     "ROLE_PGR": 2500
   },
-  "requiredRelationships": [
-    {"for_each": "ROLE_PGR", "needs_at_least": 1, "holder": "ROLE_SUPERVISOR"},
-    {"for_each": "ROLE_PGR", "needs_at_least": 1, "holder": "ROLE_SUPERVISORTAP"},
-    {"for_each": "ROLE_PGR", "needs_at_least": 1, "holder": "ROLE_GRADADMIN"},
-    {"for_each": "ROLE_PGR", "needs_at_least": 1, "holder": "ROLE_PROGMEMBER"},
-    {"for_each": "ROLE_PGR", "needs_at_least": 1, "holder": "ROLE_PROGCHAIR"}
-  ]
+  "minimumRequiredRelationships": {
+    "ROLE_PGR": {
+      "ROLE_SUPERVISOR": 1,
+      "ROLE_SUPERVISORTAP": 1,
+      "ROLE_GRADADMIN": 1,
+      "ROLE_REGISTRY": 1,
+      "ROLE_PROGMEMBER": 0,
+      "ROLE_PROGCHAIR": 1
+    }
+  }
 }
