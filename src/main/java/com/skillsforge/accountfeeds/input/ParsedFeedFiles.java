@@ -285,7 +285,7 @@ public class ParsedFeedFiles {
 
     for (final List<String> line : groups.subList(1, groups.size())) {
       if (!line.isEmpty()) {
-        objects.add(new InputGroup(state, line));
+        objects.add(new InputGroup(state, line, orgParams));
       }
     }
 

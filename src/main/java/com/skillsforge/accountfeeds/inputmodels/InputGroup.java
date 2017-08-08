@@ -1,5 +1,6 @@
 package com.skillsforge.accountfeeds.inputmodels;
 
+import com.skillsforge.accountfeeds.config.OrganisationParameters;
 import com.skillsforge.accountfeeds.config.ProgramState;
 import com.skillsforge.accountfeeds.input.Patterns;
 import com.skillsforge.accountfeeds.outputmodels.OutputGroup;
@@ -22,6 +23,10 @@ public class InputGroup {
   @SuppressWarnings("FieldNotUsedInToString")
   @Nonnull
   private final ProgramState state;
+  @SuppressWarnings("FieldNotUsedInToString")
+  @Nonnull
+  private final Patterns patterns;
+
   @Nullable
   private final String groupAlias;
   @Nullable
@@ -31,7 +36,8 @@ public class InputGroup {
   @Nullable
   private final String delete;
 
-  public InputGroup(@Nonnull final ProgramState state, @Nonnull final List<String> line) {
+  public InputGroup(@Nonnull final ProgramState state, @Nonnull final List<String> line,
+      @Nonnull final OrganisationParameters orgParams) {
     this.state = state;
 
     if (line.size() < 4) {
@@ -47,6 +53,8 @@ public class InputGroup {
     groupName = CommonMethods.getFieldFromLine(line, 1);
     groupDescription = CommonMethods.getFieldFromLine(line, 2);
     delete = CommonMethods.getFieldFromLine(line, 3);
+
+    patterns = new Patterns(orgParams.getTargetVersion());
   }
 
   @Nullable
@@ -65,13 +73,13 @@ public class InputGroup {
   @Contract(pure = true)
   public OutputGroup validateAllFields() {
     final String oGroupAlias =
-        CommonMethods.validateMandatory(groupAlias, Patterns::isValidGroupAlias, "GroupAlias",
+        CommonMethods.validateMandatory(groupAlias, patterns::isValidGroupAlias, "GroupAlias",
             state, this);
     final String oGroupName =
-        CommonMethods.validateNonMandatory(groupName, Patterns::isAlwaysValid, "GroupName", state,
+        CommonMethods.validateNonMandatory(groupName, patterns::isAlwaysValid, "GroupName", state,
             this, true);
     final String oGroupDescription =
-        CommonMethods.validateNonMandatory(groupDescription, Patterns::isAlwaysValid,
+        CommonMethods.validateNonMandatory(groupDescription, patterns::isAlwaysValid,
             "GroupDescription", state, this, false);
     final String oDelete =
         CommonMethods.validateTrueFalse(delete, state, this, "Delete");

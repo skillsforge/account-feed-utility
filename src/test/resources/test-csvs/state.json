@@ -21,7 +21,6 @@
     "ROLE_PGR",
     "ROLE_EM_PROVIDER",
     "ROLE_EM_FACILITATOR",
-    "LOGINTHRUCLOSED",
     "ROLE_0001",
     "ROLE_0002",
     "ROLE_0003",
@@ -69,10 +68,6 @@
     "ROLE_0389",
     "ROLE_AM_READ",
     "ROLE_AM_RELATIONSHIP_EDIT",
-    "ROLE_CAN_DELETE_ANY_FORM",
-    "ROLE_CMS_RES_EDITOR",
-    "ROLE_CMS_SCRIPTING",
-    "ROLE_DATA_FEED_CONSUMER",
     "ROLE_EM_CLONE_OCCURRENCE",
     "ROLE_EM_CREATE_EVENT",
     "ROLE_EM_CREATE_EVENT_CATEGORY",
@@ -99,10 +94,7 @@
     "ROLE_EM_SU",
     "ROLE_EM_VENUE_ADMIN",
     "ROLE_PFA",
-    "ROLE_SU",
     "ROLE_STUDENT",
-    "SU",
-    "SYS_QUARTZ_ROLE",
     "test",
     "UAT"
   ],
@@ -119,5 +111,15 @@
     "ftPtRatio_derived_from_SCE_BLOK": "^(1|0\\.5)$|",
     "pathway": "^(PHD|ENGD|MRES|MPHIL|MD|MAT|MSCR)$|",
     "ROU_LEN_courseLength": "^[0-9]$|"
-  }
+  },
+  "usersContributingToLicence": {
+    "ROLE_PGR": 2500
+  },
+  "requiredRelationships": [
+    {"for_each": "ROLE_PGR", "needs_at_least": 1, "holder": "ROLE_SUPERVISOR"},
+    {"for_each": "ROLE_PGR", "needs_at_least": 1, "holder": "ROLE_SUPERVISORTAP"},
+    {"for_each": "ROLE_PGR", "needs_at_least": 1, "holder": "ROLE_GRADADMIN"},
+    {"for_each": "ROLE_PGR", "needs_at_least": 1, "holder": "ROLE_PROGMEMBER"},
+    {"for_each": "ROLE_PGR", "needs_at_least": 1, "holder": "ROLE_PROGCHAIR"}
+  ]
 }

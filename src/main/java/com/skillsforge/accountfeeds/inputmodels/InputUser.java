@@ -30,6 +30,10 @@ public class InputUser {
   @SuppressWarnings("FieldNotUsedInToString")
   @Nonnull
   private final OrganisationParameters orgParams;
+  @SuppressWarnings("FieldNotUsedInToString")
+  @Nonnull
+  private final Patterns patterns;
+
   @Nonnull
   private final Map<String, String> metaData = new HashMap<>();
   @Nullable
@@ -81,6 +85,8 @@ public class InputUser {
         metaData.put(metadataHeaders.get(valNum), metaValues.get(valNum));
       }
     }
+
+    patterns = new Patterns(orgParams.getTargetVersion());
   }
 
   @Nullable
@@ -105,20 +111,20 @@ public class InputUser {
   @Contract(pure = true)
   public OutputUser validateAllFields() {
     final String oUserId =
-        CommonMethods.validateMandatory(userId, Patterns::isValidUserId, "UserID", state, this);
+        CommonMethods.validateMandatory(userId, patterns::isValidUserId, "UserID", state, this);
     final String oUsername =
-        CommonMethods.validateMandatory(username, Patterns::isValidUsername, "Username", state,
+        CommonMethods.validateMandatory(username, patterns::isValidUsername, "Username", state,
             this);
     final String oEmail =
-        CommonMethods.validateMandatory(email, Patterns::isValidEmail, "Email", state, this);
+        CommonMethods.validateMandatory(email, patterns::isValidEmail, "Email", state, this);
     final String oTitle =
-        CommonMethods.validateNonMandatory(title, Patterns::isValidName, "Title", state, this,
+        CommonMethods.validateNonMandatory(title, patterns::isValidName, "Title", state, this,
             true);
     final String oForename =
-        CommonMethods.validateNonMandatory(forename, Patterns::isValidName, "Forename", state, this,
+        CommonMethods.validateNonMandatory(forename, patterns::isValidName, "Forename", state, this,
             true);
     final String oSurname =
-        CommonMethods.validateMandatory(surname, Patterns::isValidName, "Surname", state, this);
+        CommonMethods.validateMandatory(surname, patterns::isValidName, "Surname", state, this);
     final String oDisabled =
         CommonMethods.validateTrueFalse(disabled, state, this, "Disabled");
     final String oArchived =
