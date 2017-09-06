@@ -21,6 +21,13 @@ import java.util.Objects;
 public class CsvReaderUnitTest {
 
   @Test
+  public void testStringUnQuoter() {
+
+    Assert.assertEquals(CsvReader.stripEnclosingQuotes("\"DPT_PO\""), "DPT_PO",
+        "Couldn't unquote string correctly.");
+  }
+
+  @Test
   public void testReadFile() throws IOException {
     final StringBuilder stringBuilder = initStrings();
 
@@ -34,12 +41,12 @@ public class CsvReaderUnitTest {
       final List<List<String>> result = csvReader.readFile();
 
       Assert.assertNotNull(result, "ListList was null");
-      Assert.assertEquals(result.size(), 18, "Wrong number of elements");
+      Assert.assertEquals(result.size(), 19, "Wrong number of elements");
       Assert.assertEquals(result.get(2), Collections.emptyList(),
           "'\\n' isn't represented as an empty list.");
       Assert.assertEquals(result.stream().filter(Objects::isNull).count(), 0,
           "Some results were null.");
-      Assert.assertEquals(result.stream().mapToLong(Collection::size).sum(), 60,
+      Assert.assertEquals(result.stream().mapToLong(Collection::size).sum(), 64,
           "Wrong number of total fields returned.");
     }
   }
@@ -75,6 +82,7 @@ public class CsvReaderUnitTest {
                          + "X,W,XXX,N,aaaaaaaaa,11-XXX-XX,11-XXX-XX,1,1,PHD,1,11/11/1111,"
                          + "11/11/1111,11/11/1111,11/11/1111,0,0,N,\"\"\"The Ill-Shaped "
                          + "Monster\"\": Representing the 'Rotten Borough', 1783-1818\"\n");
+    stringBuilder.append("\"DPT_PO\",\"Test\",\"P\",\"false\"");
     return stringBuilder;
   }
 
@@ -170,7 +178,7 @@ public class CsvReaderUnitTest {
       Assert.assertNotNull(line14, "List was null");
       Assert.assertEquals(line14.size(), 2, "Wrong number of elements");
       Assert.assertNotNull(line14.get(0), "String was null");
-      Assert.assertEquals(line14.get(0), "\"aꜬbꜢd\uD801\uDF22e∛f\"",
+      Assert.assertEquals(line14.get(0), "aꜬbꜢd\uD801\uDF22e∛f",
           "Quoted unicode characters caused problems.");
 
       final List<String> line15 = csvReader.parseLine();
@@ -206,11 +214,17 @@ public class CsvReaderUnitTest {
           "Made-up stucode was not pulled out successfully.");
       Assert.assertNotNull(line18.get(27), "String with many quotations was null.");
       Assert.assertEquals(line18.get(27), "\"The Ill-Shaped Monster\": Representing the 'Rotten "
-                                         + "Borough', 1783-1818",
+                                          + "Borough', 1783-1818",
           "Interstitial quotation marks at the beginning of the string caused an issue.");
 
       final List<String> line19 = csvReader.parseLine();
-      Assert.assertNull(line19, "Reading past end of file didn't result in null");
+      Assert.assertNotNull(line19, "List was null");
+      Assert.assertEquals(line19.size(), 4, "Wrong number of elements");
+      Assert.assertNotNull(line19.get(0), "String was null");
+      Assert.assertEquals(line19.get(0), "DPT_PO", "Quoted department had quotes removed.");
+
+      final List<String> line20 = csvReader.parseLine();
+      Assert.assertNull(line20, "Reading past end of file didn't result in null");
     }
   }
 }

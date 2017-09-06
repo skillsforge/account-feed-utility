@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -25,6 +26,7 @@ import static com.skillsforge.accountfeeds.config.LogLevel.WARN;
  * @date 25-Nov-2016
  */
 public class CsvReader extends BufferedReader {
+  private static final Pattern QUOTE_MATCHER = Pattern.compile("\\A\"(.*)\"\\z");
   @Nonnull
   private final ProgramState state;
 
@@ -150,12 +152,12 @@ public class CsvReader extends BufferedReader {
         case ENDING_QUOTED_FIELD:
           if ((nextRead == -1) || (nextChar == '\n')) {
             lineNum++;
-            result.add(StringEscapeUtils.unescapeCsv(thisField.toString()));
+            result.add(stripEnclosingQuotes(StringEscapeUtils.unescapeCsv(thisField.toString())));
             return Collections.unmodifiableList(result);
           }
           if (nextChar == ',') {
             stateMachine = CsvStates.START_OF_FIELD;
-            result.add(StringEscapeUtils.unescapeCsv(thisField.toString()));
+            result.add(stripEnclosingQuotes(StringEscapeUtils.unescapeCsv(thisField.toString())));
             thisField.setLength(0);
             fieldNum++;
           } else if (nextChar == '\"') {
@@ -173,6 +175,10 @@ public class CsvReader extends BufferedReader {
           break;
       }
     } while (true);
+  }
+
+  public static String stripEnclosingQuotes(final CharSequence quotedString) {
+    return QUOTE_MATCHER.matcher(quotedString).replaceAll("$1");
   }
 
   private enum CsvStates {
