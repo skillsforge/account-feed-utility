@@ -20,11 +20,11 @@ public class OutputGroupRole {
   @Nonnull
   private final String groupAlias;
   @Nonnull
-  private final String roleAlias;
+  private final String roleName;
 
-  public OutputGroupRole(@Nonnull final String groupAlias, @Nonnull final String roleAlias) {
+  public OutputGroupRole(@Nonnull final String groupAlias, @Nonnull final String roleName) {
     this.groupAlias = groupAlias;
-    this.roleAlias = roleAlias;
+    this.roleName = roleName;
   }
 
   @Nonnull
@@ -35,26 +35,26 @@ public class OutputGroupRole {
 
   @Nonnull
   @Contract(pure = true)
-  public String getRoleAlias() {
-    return roleAlias;
+  public String getRoleName() {
+    return roleName;
   }
 
   @Override
   @Contract(pure = true)
   public String toString() {
-    return String.format("Group->Role['%s'->'%s']", groupAlias, roleAlias);
+    return String.format("Group->Role['%s'->'%s']", groupAlias, roleName);
   }
 
   @Nonnull
   @Contract(pure = true)
   private String getSortString() {
-    return groupAlias + ',' + roleAlias;
+    return groupAlias + ',' + roleName;
   }
 
   @Nonnull
   @Contract(pure = true)
   public String getCsvRow() {
     return StringEscapeUtils.escapeCsv(groupAlias) + ',' +
-           StringEscapeUtils.escapeCsv(roleAlias);
+           StringEscapeUtils.escapeCsv(roleName);
   }
 }

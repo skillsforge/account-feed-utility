@@ -1,5 +1,7 @@
 package com.skillsforge.accountfeeds.config;
 
+import com.skillsforge.accountfeeds.input.Patterns;
+
 import org.jetbrains.annotations.Contract;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -43,9 +45,11 @@ public class OrganisationParameters {
   private static final Set<String> defaultRelationshipRoles =
       new HashSet<>(Arrays.asList("ROLE_GRADADMIN", "ROLE_SUPERVISOR"));
   @Nonnull
-  private final Map<String, Integer> seatCountLimits = new HashMap<>();
+  private final Map<String, Long> headcountLimits = new HashMap<>();
   @Nonnull
-  private final Map<String, Map<String, Integer>> minimumRequiredRelationships = new HashMap<>();
+  private final Map<String, Map<String, Long>> minimumRequiredRelationships = new HashMap<>();
+  @Nonnull
+  private final Map<String, Map<String, Long>> maximumRequiredRelationships = new HashMap<>();
   @Nonnull
   private final Set<String> groupRoles = new HashSet<>();
   @Nonnull
@@ -61,7 +65,8 @@ public class OrganisationParameters {
   private String organisation = "DEFAULT";
   @Nonnull
   private String organisationName = "a Default SkillsForge Instance";
-
+  @Nonnull
+  private Patterns patterns = new Patterns(targetVersion);
   public OrganisationParameters(@Nonnull final ProgramState state) {
     final File stateFile = state.getFile(FileKey.STATE_FILE);
     if (stateFile == null) {
@@ -103,17 +108,19 @@ public class OrganisationParameters {
             targetVersionMajor, targetVersionMinor, targetVersionRevision, targetVersionBetaLevel);
       }
 
+      patterns = new Patterns(targetVersion);
+
       organisation = stateConfig.getString("organisation");
       organisationName = stateConfig.getString("organisationName");
 
-      if (stateConfig.has("usersContributingToLicence")) {
-        final JSONObject licencedUsersObject =
-            stateConfig.getJSONObject("usersContributingToLicence");
+      if (stateConfig.has("headcountLimits")) {
+        final JSONObject headcountLimitsObject =
+            stateConfig.getJSONObject("headcountLimits");
 
-        licencedUsersObject
+        headcountLimitsObject
             .keys()
             .forEachRemaining(
-                key -> seatCountLimits.putIfAbsent(key, licencedUsersObject.getInt(key)));
+                key -> this.headcountLimits.putIfAbsent(key, headcountLimitsObject.getLong(key)));
       }
 
       if (stateConfig.has("minimumRequiredRelationships")) {
@@ -129,7 +136,26 @@ public class OrganisationParameters {
 
                   return holderRoleCounts.keySet().stream().collect(Collectors.toMap(
                       holderRole -> holderRole,
-                      holderRoleCounts::getInt
+                      holderRoleCounts::getLong
+                  ));
+                }
+            ))
+        );
+      }
+      if (stateConfig.has("maximumRequiredRelationships")) {
+        final JSONObject maxRequiredRelsObject =
+            stateConfig.getJSONObject("maximumRequiredRelationships");
+
+        maximumRequiredRelationships.putAll(
+            maxRequiredRelsObject.keySet().stream().collect(Collectors.toMap(
+                subjectRole -> subjectRole,
+                subjectRole -> {
+                  final JSONObject holderRoleCounts =
+                      maxRequiredRelsObject.getJSONObject(subjectRole);
+
+                  return holderRoleCounts.keySet().stream().collect(Collectors.toMap(
+                      holderRole -> holderRole,
+                      holderRoleCounts::getLong
                   ));
                 }
             ))
@@ -172,6 +198,21 @@ public class OrganisationParameters {
                     + "%s (%s) targeting SkillsForge version %d.%d.%d-%d.\n",
         organisationName, organisation, targetVersionMajor, targetVersionMinor,
         targetVersionRevision, targetVersionBetaLevel);
+  }
+
+  @Nonnull
+  public Map<String, Long> getHeadcountLimits() {
+    return Collections.unmodifiableMap(headcountLimits);
+  }
+
+  @Nonnull
+  public Map<String, Map<String, Long>> getMinimumRequiredRelationships() {
+    return Collections.unmodifiableMap(minimumRequiredRelationships);
+  }
+
+  @Nonnull
+  public Map<String, Map<String, Long>> getMaximumRequiredRelationships() {
+    return Collections.unmodifiableMap(maximumRequiredRelationships);
   }
 
   @Nonnull
@@ -227,5 +268,10 @@ public class OrganisationParameters {
   @Contract(pure = true)
   public Pattern getMetadataPattern(@Nonnull final String key) {
     return metadataPatternMap.get(key.toLowerCase());
+  }
+
+  @Nonnull
+  public Patterns getPatterns() {
+    return patterns;
   }
 }

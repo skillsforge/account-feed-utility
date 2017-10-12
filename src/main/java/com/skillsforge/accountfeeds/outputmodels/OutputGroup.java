@@ -60,12 +60,12 @@ public class OutputGroup {
   }
 
   public void addRole(@Nonnull final ProgramState state, @Nonnull final OutputGroupRole groupRole) {
-    if (roleNames.contains(groupRole.getRoleAlias())) {
+    if (roleNames.contains(groupRole.getRoleName())) {
       state.log(WARN, "GroupRole mapping of '%s' -> '%s' is specified more than once.",
-          groupAlias, groupRole.getRoleAlias());
+          groupAlias, groupRole.getRoleName());
       return;
     }
-    roleNames.add(groupRole.getRoleAlias());
+    roleNames.add(groupRole.getRoleName());
     groupRoles.add(groupRole);
   }
 

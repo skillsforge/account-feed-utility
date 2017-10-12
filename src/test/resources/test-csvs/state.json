@@ -4,7 +4,7 @@
     "major": 5,
     "minor": 10,
     "revision": 0,
-    "betaLevel": 4
+    "betaLevel": 9
   },
   "organisation": "YORK",
   "organisationName": "The University of York",
@@ -110,20 +110,17 @@
     "SCJ_EEND_ORA_endDate": "^20[0-9]{2}-[0-9]{2}-[0-9]{2} .*$|",
     "year_derived_from_SCE_BLOK": "^[0-9]$|",
     "ftPtRatio_derived_from_SCE_BLOK": "^(1|0\\.5)$|",
-    "pathway": "^(PHD|ENGD|MRES|MPHIL|MD|MAT|MSCR)$|",
+    "pathway": "^(PHD|ENGD|MPHIL|MAR|MSCR)$|",
     "ROU_LEN_courseLength": "^[0-9]$|"
-  },
-  "usersContributingToLicence": {
-    "ROLE_PGR": 2500
   },
   "minimumRequiredRelationships": {
     "ROLE_PGR": {
       "ROLE_SUPERVISOR": 1,
-      "ROLE_SUPERVISORTAP": 1,
-      "ROLE_GRADADMIN": 1,
-      "ROLE_REGISTRY": 1,
-      "ROLE_PROGMEMBER": 0,
-      "ROLE_PROGCHAIR": 1
+      "ROLE_GRADADMIN": 1
     }
+  },
+  "headcountLimits": {
+    "ROLE_PGR": 2500,
+    "all users": 3000
   }
 }

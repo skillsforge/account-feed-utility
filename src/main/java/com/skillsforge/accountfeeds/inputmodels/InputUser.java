@@ -31,8 +31,6 @@ public class InputUser {
   @Nonnull
   private final OrganisationParameters orgParams;
   @SuppressWarnings("FieldNotUsedInToString")
-  @Nonnull
-  private final Patterns patterns;
 
   @Nonnull
   private final Map<String, String> metaData = new HashMap<>();
@@ -85,8 +83,6 @@ public class InputUser {
         metaData.put(metadataHeaders.get(valNum), metaValues.get(valNum));
       }
     }
-
-    patterns = new Patterns(orgParams.getTargetVersion());
   }
 
   @Nullable
@@ -110,6 +106,7 @@ public class InputUser {
   @Nullable
   @Contract(pure = true)
   public OutputUser validateAllFields() {
+    final Patterns patterns = orgParams.getPatterns();
     final String oUserId =
         CommonMethods.validateMandatory(userId, patterns::isValidUserId, "UserID", state, this);
     final String oUsername =

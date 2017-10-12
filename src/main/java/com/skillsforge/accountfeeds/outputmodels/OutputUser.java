@@ -51,10 +51,13 @@ public class OutputUser {
   @Nonnull
   private final Set<String> groupNames = new HashSet<>();
   @Nonnull
-  private final Set<OutputUserRelationship> userRelationships = new HashSet<>();
+  private final Set<OutputUserRelationship> userRelationshipsHeld = new HashSet<>();
   @Nonnull
-  private final Map<String, Set<String>> relationshipRoleToUserIds = new HashMap<>();
-
+  private final Set<OutputUserRelationship> userRelationshipsSubject = new HashSet<>();
+  @Nonnull
+  private final Map<String, Set<String>> userRelationshipsHeldOverOtherUsers = new HashMap<>();
+  @Nonnull
+  private final Map<String, Set<String>> userRelationshipsThisUserIsASubjectOf = new HashMap<>();
   public OutputUser(@Nonnull final String userId, @Nonnull final String userName,
       @Nonnull final String email, @Nonnull final String title, @Nonnull final String forename,
       @Nonnull final String surname,
@@ -71,6 +74,10 @@ public class OutputUser {
     this.metadata.putAll(metadata);
   }
 
+  public boolean isArchived() {
+    return archived;
+  }
+
   @Nonnull
   @Contract(pure = true)
   public String getUserId() {
@@ -81,10 +88,12 @@ public class OutputUser {
   @Nonnull
   @Contract(pure = true)
   public String toString() {
-    return String.format("User['%s','%s','%s','%s','%s','%s','%s','%s',meta=%s,group=%s,rel=%s]",
+    return String.format("User['%s','%s','%s','%s','%s','%s','%s','%s',meta=%s,group=%s,"
+                         + "relHeld=%s,relSubj=%s]",
         userId, userName, email, title, forename, surname, disabled ? "disabled" : "enabled",
         archived ? "archived" : "active", metadata.toString(), userGroups.toString(),
-        userRelationships.toString());
+        userRelationshipsHeld.toString(),
+        userRelationshipsSubject.toString());
   }
 
   public void addGroup(@Nonnull final ProgramState state,
@@ -100,17 +109,33 @@ public class OutputUser {
 
   public void addRelationshipHeldOverAnotherUser(@Nonnull final ProgramState state,
       @Nonnull final OutputUserRelationship rel) {
-    if (relationshipRoleToUserIds.containsKey(rel.getRoleAliasLeft())) {
-      if (relationshipRoleToUserIds.get(rel.getRoleAliasLeft()).contains(rel.getUserIdRight())) {
+    if (userRelationshipsHeldOverOtherUsers.containsKey(rel.getRoleAliasLeft())) {
+      if (userRelationshipsHeldOverOtherUsers
+          .get(rel.getRoleAliasLeft())
+          .contains(rel.getUserIdRight())) {
         state.log(WARN, "UserRelationship mapping '%s'-[%s]->'%s' is specified more than once.",
             userId, rel.getRoleAliasLeft(), rel.getUserIdRight());
         return;
       }
     } else {
-      relationshipRoleToUserIds.put(rel.getRoleAliasLeft(), new TreeSet<>());
+      userRelationshipsHeldOverOtherUsers.put(rel.getRoleAliasLeft(), new TreeSet<>());
     }
-    relationshipRoleToUserIds.get(rel.getRoleAliasLeft()).add(rel.getUserIdRight());
-    userRelationships.add(rel);
+    userRelationshipsHeldOverOtherUsers.get(rel.getRoleAliasLeft()).add(rel.getUserIdRight());
+    userRelationshipsHeld.add(rel);
+  }
+
+  public void addRelationshipThisUserIsASubjectOf(@Nonnull final OutputUserRelationship rel) {
+    if (userRelationshipsThisUserIsASubjectOf.containsKey(rel.getRoleAliasLeft())) {
+      if (userRelationshipsThisUserIsASubjectOf
+          .get(rel.getRoleAliasLeft())
+          .contains(rel.getUserIdRight())) {
+        return;
+      }
+    } else {
+      userRelationshipsThisUserIsASubjectOf.put(rel.getRoleAliasLeft(), new TreeSet<>());
+    }
+    userRelationshipsThisUserIsASubjectOf.get(rel.getRoleAliasLeft()).add(rel.getUserIdRight());
+    userRelationshipsSubject.add(rel);
   }
 
   @Nonnull
@@ -150,6 +175,13 @@ public class OutputUser {
   @Nonnull
   @Contract(pure = true)
   public Stream<OutputUserRelationship> getRelationshipsHeld() {
-    return userRelationships.stream();
+    return userRelationshipsHeld.stream();
+  }
+
+
+  @Nonnull
+  @Contract(pure = true)
+  public Stream<OutputUserRelationship> getRelationshipsSubject() {
+    return userRelationshipsSubject.stream();
   }
 }

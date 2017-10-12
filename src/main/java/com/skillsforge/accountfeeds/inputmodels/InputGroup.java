@@ -24,8 +24,6 @@ public class InputGroup {
   @Nonnull
   private final ProgramState state;
   @SuppressWarnings("FieldNotUsedInToString")
-  @Nonnull
-  private final Patterns patterns;
 
   @Nullable
   private final String groupAlias;
@@ -35,6 +33,10 @@ public class InputGroup {
   private final String groupDescription;
   @Nullable
   private final String delete;
+
+  @SuppressWarnings("FieldNotUsedInToString")
+  @Nonnull
+  private final OrganisationParameters orgParams;
 
   public InputGroup(@Nonnull final ProgramState state, @Nonnull final List<String> line,
       @Nonnull final OrganisationParameters orgParams) {
@@ -54,7 +56,7 @@ public class InputGroup {
     groupDescription = CommonMethods.getFieldFromLine(line, 2);
     delete = CommonMethods.getFieldFromLine(line, 3);
 
-    patterns = new Patterns(orgParams.getTargetVersion());
+    this.orgParams = orgParams;
   }
 
   @Nullable
@@ -72,6 +74,7 @@ public class InputGroup {
   @Nullable
   @Contract(pure = true)
   public OutputGroup validateAllFields() {
+    final Patterns patterns = orgParams.getPatterns();
     final String oGroupAlias =
         CommonMethods.validateMandatory(groupAlias, patterns::isValidGroupAlias, "GroupAlias",
             state, this);

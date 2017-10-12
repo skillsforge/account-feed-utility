@@ -55,6 +55,8 @@ public class Indexes {
   @Nonnull
   private final Set<String> rolesForRelationshipsUpperCase = new HashSet<>();
 
+  private final OrganisationParameters orgParams;
+
   public Indexes(
       @Nonnull final OrganisationParameters orgParams,
       @Nonnull final ProgramState state,
@@ -63,6 +65,7 @@ public class Indexes {
       @Nonnull final Iterable<OutputUser> compiledUsers,
       @Nonnull final Iterable<OutputGroup> compiledGroups) {
 
+    this.orgParams = orgParams;
     orgParams.getGroupRoles().forEach(role -> {
       rolesForGroups.add(role.trim());
       rolesForGroupsUpperCase.add(role.trim().toUpperCase());
@@ -104,8 +107,15 @@ public class Indexes {
             group.toString());
       } else {
         if (groupsByName.containsKey(groupName.trim())) {
-          state.log(WARN, "There is more than one group with the GroupName '%s'.",
-              groupName.trim());
+          if (orgParams.getTargetVersion() >= 5_010_000_006L) {
+            state.log(WARN, "There is more than one group with the GroupName '%s'.",
+                groupName.trim());
+          } else {
+            state.log(ERROR,
+                "There is more than one group with the GroupName '%s'.  Invokes a bug fixed in "
+                + "5.10.0-BETA-6.",
+                groupName.trim());
+          }
         } else {
           groupsByName.put(groupName.trim(), group);
         }
