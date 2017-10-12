@@ -21,7 +21,14 @@ public enum PropKey {
   STATE_FILENAME("state-filename", "State File"),
   OUTPUT_LOG("output-log", "Output Log"),
   URL("url", null),
-  TOKEN("token", null);
+  TOKEN("token", null),
+  ORG_ALIAS("org-alias", null),
+  FEED_ID("feed-id", null),
+  EMAIL_LIST("email-to", null),
+  EMAIL_SUBJECT("email-subject", null),
+  USERNAME_CHANGES("allow-username-changes", null),
+  ACCOUNT_EXPIRE_DELAY("account-expiry-days", null),
+  RELATIONSHIP_EXPIRE_DELAY("relationship-expiry-days", null);
 
   @Nonnull
   private final String argName;

@@ -5,6 +5,7 @@ import com.skillsforge.accountfeeds.config.OrganisationParameters;
 import com.skillsforge.accountfeeds.config.ProgramMode;
 import com.skillsforge.accountfeeds.config.ProgramState;
 import com.skillsforge.accountfeeds.config.PropKey;
+import com.skillsforge.accountfeeds.exceptions.ParamException;
 import com.skillsforge.accountfeeds.input.Indexes;
 import com.skillsforge.accountfeeds.input.ParsedFeedFiles;
 import com.skillsforge.accountfeeds.inputmodels.InputGroup;
@@ -18,20 +19,26 @@ import com.skillsforge.accountfeeds.outputmodels.OutputUser;
 import com.skillsforge.accountfeeds.outputmodels.OutputUserGroup;
 import com.skillsforge.accountfeeds.outputmodels.OutputUserRelationship;
 
+import org.apache.http.StatusLine;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.jetbrains.annotations.Contract;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.PrintStream;
-import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.net.URL;
-import java.net.URLConnection;
+import java.nio.charset.Charset;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -107,7 +114,11 @@ public class MainProgram {
     }
 
     if (state.getProgramMode() == ProgramMode.UPLOAD) {
-      upload(state, orgParams);
+      try {
+        upload(state, orgParams, feedFiles.getMetadataKeyCsvString());
+      } catch (ParamException ignored) {
+        state.log(ERROR, "Could not locate the metadata headers in use in the Users file.");
+      }
     }
 
     state.renderLog();
@@ -117,6 +128,7 @@ public class MainProgram {
       "MethodWithMoreThanThreeNegations",
       "OverlyComplexMethod",
       "OverlyCoupledMethod"
+      , "OverlyLongMethod"
   })
   private static void check(@Nonnull final ProgramState state,
       @Nonnull final OrganisationParameters orgParams,
@@ -210,9 +222,10 @@ public class MainProgram {
     state.log(INFO, "+ Validated all final feed objects.\n");
 
     // Check headcounts
-    state.log(INFO, "\n\nChecking headcounts:\n==========================\n"
-                    + "NOTE: These do not consider manually created accounts or accounts in\n"
-                    + "their grace period, so these numbers will be an under-estimate.\n");
+    state.licenceLog(INFO,
+        "Checking headcounts:\n"
+        + "  NOTE: These do not consider manually created accounts or accounts\n"
+        + "  in their grace period, so these numbers will be an under-estimate.\n");
     for (final String headcountRole : orgParams.getHeadcountLimits().keySet()) {
       final long limit = orgParams.getHeadcountLimits().get(headcountRole);
       final long headcount = compiledUsers.stream()
@@ -220,14 +233,14 @@ public class MainProgram {
           .count();
 
       if (headcount > limit) {
-        state.log(WARN, "HEADCOUNT EXCEEDED for '%s': using %d of %d licences.",
+        state.licenceLog(WARN, "HEADCOUNT EXCEEDED for '%s': using %d of %d licences.",
             headcountRole, headcount, limit);
       } else {
-        state.log(INFO, "Headcount for '%s': using %d of %d licences.",
+        state.licenceLog(INFO, "Headcount for '%s': using %d of %d licences.",
             headcountRole, headcount, limit);
       }
     }
-    state.log(INFO, "+ All headcounts checked.\n");
+    state.licenceLog(INFO, "+ All headcounts checked.\n");
 
     state.log(INFO, "\n\nValidating relationships:\n==========================\n");
 
@@ -423,61 +436,108 @@ public class MainProgram {
   }
 
   private static void upload(@Nonnull final ProgramState state,
-      @Nonnull final OrganisationParameters orgParams) {
+      @Nonnull final OrganisationParameters orgParams, @Nonnull final String metaKeyCsvList) {
 
-    final String token = state.getProperty(PropKey.TOKEN);
-    final String url = state.getProperty(PropKey.URL);
+    final Map<PropKey, String> uploadParams = orgParams.getUploadParams();
 
-    if (url == null) {
-      state.log(ERROR, "The URL to upload the feed files to was not specified.");
-      state.setFatalErrorEncountered();
+    final Map<String, String> fields = new HashMap<>();
+    fields.put("j_orgAlias", uploadParams.get(PropKey.ORG_ALIAS));
+    fields.put("orgAlias", uploadParams.get(PropKey.ORG_ALIAS));
+    fields.put("owningFeed", uploadParams.get(PropKey.FEED_ID));
+    fields.put("emailResult_recipientList", uploadParams.get(PropKey.EMAIL_LIST));
+    fields.put("csvFile_Users_extra_metadata_keys", metaKeyCsvList);
+    if (uploadParams.containsKey(PropKey.USERNAME_CHANGES)) {
+      fields.put("allowUsernameChanges", "on");
     }
-    if (token == null) {
-      state.log(ERROR,
-          "The token for authenticating with the SkillsForge instance was not specified.  This "
-          + "can be specified either on the command line, or within the '%s' environment variable.",
-          ProgramState.ENV_SF_TOKEN);
-      state.setFatalErrorEncountered();
+    if (uploadParams.containsKey(PropKey.EMAIL_SUBJECT)) {
+      fields.put("emailResult_subject", uploadParams.get(PropKey.EMAIL_SUBJECT));
     }
-    if (state.hasFatalErrorBeenEncountered()) {
-      return;
+    if (uploadParams.containsKey(PropKey.ACCOUNT_EXPIRE_DELAY)) {
+      fields.put("archiveAccountsAfterDays", uploadParams.get(PropKey.ACCOUNT_EXPIRE_DELAY));
     }
-
-    assert url != null;
-    assert token != null;
-
-    final URLConnection urlConnection;
-    try {
-      urlConnection = new URL(url).openConnection();
-    } catch (IOException e) {
-      state.log(ERROR, "Could not open connection to URL: %s\n  %s", url, e.getLocalizedMessage());
-      state.setFatalErrorEncountered();
-      return;
+    if (uploadParams.containsKey(PropKey.RELATIONSHIP_EXPIRE_DELAY)) {
+      fields.put("relationshipDeleteAfterDays",
+          uploadParams.get(PropKey.RELATIONSHIP_EXPIRE_DELAY));
     }
-    urlConnection.setDoOutput(true);
-    final String multipartBoundary = "next-file-boundary-" + UUID.randomUUID();
-    urlConnection.setRequestProperty("Content-Type",
-        "multipart/form-data; charset=utf-8; boundary=" + multipartBoundary);
 
     final File usersFile = state.getFile(FileKey.INPUT_USERS);
-    if (usersFile == null) {
-      state.log(ERROR, "No Users.csv file was specified.");
+    final File groupsFile = state.getFile(FileKey.INPUT_GROUPS);
+    final File userRelationshipsFile = state.getFile(FileKey.INPUT_USER_RELATIONSHIPS);
+    final File userGroupsFile = state.getFile(FileKey.INPUT_USER_GROUPS);
+    final File groupRolesFile = state.getFile(FileKey.INPUT_GROUP_ROLES);
+
+    if (anyNull(usersFile, groupsFile, userRelationshipsFile, userGroupsFile, groupRolesFile)) {
+      state.log(ERROR, "All five CSV files must be specified and exist.");
       state.setFatalErrorEncountered();
       return;
     }
 
-    try (OutputStream outputStream = urlConnection.getOutputStream();
-         PrintWriter httpOut = new PrintWriter(new OutputStreamWriter(outputStream, "UTF-8"))) {
-      httpOut.append("--").append(multipartBoundary).append(CR_LF);
-      httpOut.append("Content-Disposition: form-data; name=\"param\"").append(CR_LF);
-      httpOut.append("Content-Type: text/plain; charset=UTF-8").append(CR_LF);
-      httpOut.append(CR_LF).append("").append(CR_LF).flush();
-      // TODO: actually finish this.
-    } catch (UnsupportedEncodingException e) {
+    final MultipartEntityBuilder entityBuilder = MultipartEntityBuilder
+        .create()
+        .setBoundary("------------------------boundary-" + UUID.randomUUID())
+        .setCharset(Charset.forName("UTF-8"))
+        .addBinaryBody("csvFile_Users", usersFile)
+        .addBinaryBody("csvFile_UserGroup", userGroupsFile)
+        .addBinaryBody("csvFile_UserRelationships", userRelationshipsFile)
+        .addBinaryBody("csvFile_Groups", groupsFile)
+        .addBinaryBody("csvFile_GroupRole", groupRolesFile);
+    fields.forEach((paramName, value) ->
+        entityBuilder.addTextBody(paramName, value,
+            ContentType.create("text/plain", Charset.forName("UTF-8"))));
 
-    } catch (IOException e) {
-      e.printStackTrace();
+    final String url = uploadParams.get(PropKey.URL);
+    if (url == null) {
+      throw new AssertionError("URL was not specified.");
     }
+
+    final HttpPost post = new HttpPost(url);
+    post.setEntity(entityBuilder.build());
+    post.setHeader("X-Auth-Token", uploadParams.get(PropKey.TOKEN));
+    post.setHeader("User-Agent",
+        String.format("account-feed-utility-1.0-SNAPSHOT for [%s] targeting [%d.%d.%d/%d]",
+            orgParams.getOrganisationName(), orgParams.getTargetVersionMajor(),
+            orgParams.getTargetVersionMinor(), orgParams.getTargetVersionRevision(),
+            orgParams.getTargetVersionBetaLevel()));
+
+    state.log(INFO, "\n\nBeginning upload to server.\n"
+                    + "===========================\n\n");
+
+    final RequestConfig config = RequestConfig.custom()
+        .setConnectTimeout(10 * 1000)
+        .setConnectionRequestTimeout(1000)
+        .setSocketTimeout(10 * 1000)
+        .setCircularRedirectsAllowed(false)
+        .setContentCompressionEnabled(false)
+        .setRedirectsEnabled(true)
+        .build();
+
+    StatusLine statusLine;
+    try (
+        CloseableHttpClient client = HttpClientBuilder.create()
+            .setDefaultRequestConfig(config)
+            .disableContentCompression()
+            .build();
+        CloseableHttpResponse response = client.execute(post);
+    ) {
+      statusLine = response.getStatusLine();
+    } catch (IOException e) {
+      state.log(ERROR, "Could not communicate with server: %s\n  %s", url, e.getLocalizedMessage());
+      state.setFatalErrorEncountered();
+      return;
+    }
+
+    state.log(INFO, "Completed uploading: %s", statusLine.toString());
+  }
+
+  @SafeVarargs
+  @Contract(pure = true)
+  private static <T> boolean anyNull(T... objects) {
+    for (T o : objects) {
+      if (o == null) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Contract(pure = true)

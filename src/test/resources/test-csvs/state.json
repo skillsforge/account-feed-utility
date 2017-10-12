@@ -8,6 +8,19 @@
   },
   "organisation": "YORK",
   "organisationName": "The University of York",
+  "upload": {
+    "url": "http://localhost:8103/sf510/accountUpload",
+    "token": "9142fdd8bd8b45a0ac7fa239218a3c23c3ce08818973c86251e68191096b2136600d8ef876819e0c",
+    "orgAlias": "york",
+    "feedId": "yorkcsv",
+    "emailRecipients": [
+      "alex.williams@skillsforge.co.uk"
+    ],
+    "emailSubject": "SkillsForge Account Sync Report for YORK: %RESULT%",
+    "allowUsernameChanges": true,
+    "accountExpiryDays": 42,
+    "relationshipExpiryDays": 1
+  },
   "relationshipRoles": [
     "ROLE_GRADADMIN",
     "ROLE_GRADCHAIR",

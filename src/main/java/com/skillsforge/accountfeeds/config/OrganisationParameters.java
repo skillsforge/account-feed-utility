@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -34,8 +35,11 @@ import static com.skillsforge.accountfeeds.config.LogLevel.WARN;
  */
 @SuppressWarnings("TypeMayBeWeakened")
 public class OrganisationParameters {
+  @Nonnull
+  public static final String ENV_SF_TOKEN = "SF_TOKEN";
 
   private static final long MINIMUM_SUPPORTED_TARGET_VERSION = 5_009_012_000L;
+
   private static final int STATE_CONFIG_VERSION = 1;
 
   @Nonnull
@@ -55,6 +59,8 @@ public class OrganisationParameters {
   @Nonnull
   private final Set<String> relationshipRoles = new HashSet<>();
   @Nonnull
+  private final Map<PropKey, String> uploadParams = new EnumMap<>(PropKey.class);
+  @Nonnull
   private final Map<String, Pattern> metadataPatternMap = new HashMap<>();
   private int targetVersionMajor = 5;
   private int targetVersionMinor = 9;
@@ -67,6 +73,18 @@ public class OrganisationParameters {
   private String organisationName = "a Default SkillsForge Instance";
   @Nonnull
   private Patterns patterns = new Patterns(targetVersion);
+
+  @Nullable
+  private String uploadUrl = "Invalid URL";
+  @Nullable
+  private String uploadToken = "Invalid Token";
+  @Nullable
+  private String uploadOrgAlias = "org";
+  @Nullable
+  private String uploadFeedId = "csvfeed";
+  @Nullable
+  private String uploadEmailList = "";
+
   public OrganisationParameters(@Nonnull final ProgramState state) {
     final File stateFile = state.getFile(FileKey.STATE_FILE);
     if (stateFile == null) {
@@ -173,6 +191,73 @@ public class OrganisationParameters {
         groupRoles.add(jsonGroupRoles.getString(index));
       }
 
+      if (stateConfig.has("upload")) {
+        final JSONObject uploadParamObject = stateConfig.getJSONObject("upload");
+
+        final String urlStateFile = uploadParamObject.getString("url");
+        final String urlCmdLine = state.getProperty(PropKey.URL);
+        uploadParams.put(PropKey.URL, coalesce(urlCmdLine, urlStateFile));
+
+        final String tokenStateFile = uploadParamObject.optString("token", null);
+        final String tokenCmdLine = state.getProperty(PropKey.TOKEN);
+        final String tokenSysEnv = System.getenv(ENV_SF_TOKEN);
+        uploadParams.put(PropKey.TOKEN,
+            coalesce(tokenCmdLine, tokenStateFile, tokenSysEnv, "Invalid Token"));
+
+        final String orgAliasStateFile = uploadParamObject.getString("orgAlias");
+        final String orgAliasCmdLine = state.getProperty(PropKey.ORG_ALIAS);
+        uploadParams.put(PropKey.ORG_ALIAS, coalesce(orgAliasCmdLine, orgAliasStateFile));
+
+        final String feedIdStateFile = uploadParamObject.getString("feedId");
+        final String feedIdCmdLine = state.getProperty(PropKey.FEED_ID);
+        uploadParams.put(PropKey.FEED_ID, coalesce(feedIdCmdLine, feedIdStateFile));
+
+        final JSONArray emailStateFileArray = uploadParamObject.getJSONArray("emailRecipients");
+        final String emailStateFile = emailStateFileArray.join(",");
+        final String emailCmdLine = state.getProperty(PropKey.EMAIL_LIST);
+        uploadParams.put(PropKey.EMAIL_LIST, coalesce(emailCmdLine, emailStateFile));
+
+        final String emailSubjectStateFile = uploadParamObject.optString("emailSubject", null);
+        final String emailSubjectCmdLine = state.getProperty(PropKey.EMAIL_SUBJECT);
+        final String emailSubjectToUse = coalesce(emailSubjectCmdLine, emailSubjectStateFile);
+        if (emailSubjectToUse != null) {
+          uploadParams.put(PropKey.EMAIL_SUBJECT, emailSubjectToUse);
+        }
+
+        final Boolean usernameStateFile = uploadParamObject.has("allowUsernameChanges")
+                                          ? uploadParamObject.getBoolean("allowUsernameChanges")
+                                          : null;
+        final Boolean usernameCmdLine = (state.getProperty(PropKey.USERNAME_CHANGES) == null)
+                                        ? null
+                                        : true;
+        final Boolean usernameChangeToUse = coalesce(usernameCmdLine, usernameStateFile);
+        if ((usernameChangeToUse != null) && usernameChangeToUse) {
+          uploadParams.put(PropKey.USERNAME_CHANGES, "on");
+        }
+
+        final String accountExpiryStateFile =
+            uploadParamObject.has("accountExpiryDays")
+            ? String.valueOf(uploadParamObject.getLong("accountExpiryDays"))
+            : null;
+        final String accountExpiryCmdLine = state.getProperty(PropKey.URL);
+        final String accountExpiryToUse = coalesce(accountExpiryCmdLine, accountExpiryStateFile);
+        if (accountExpiryToUse != null) {
+          uploadParams.put(PropKey.ACCOUNT_EXPIRE_DELAY,
+              String.valueOf(Long.parseUnsignedLong(accountExpiryToUse)));
+        }
+
+        final String relExpiryStateFile =
+            uploadParamObject.has("relationshipExpiryDays")
+            ? String.valueOf(uploadParamObject.getLong("relationshipExpiryDays"))
+            : null;
+        final String relExpiryCmdLine = state.getProperty(PropKey.URL);
+        final String relExpiryToUse = coalesce(relExpiryCmdLine, relExpiryStateFile);
+        if (relExpiryToUse != null) {
+          uploadParams.put(PropKey.RELATIONSHIP_EXPIRE_DELAY,
+              String.valueOf(Long.parseUnsignedLong(relExpiryToUse)));
+        }
+      }
+
       if (stateConfig.has("metadataPatterns")) {
         // If a User has a metadata key not in this map, it is accepted without question.
         // If the metadata key *is* in this map, a warning is generated if it doesn't match the
@@ -198,6 +283,18 @@ public class OrganisationParameters {
                     + "%s (%s) targeting SkillsForge version %d.%d.%d-%d.\n",
         organisationName, organisation, targetVersionMajor, targetVersionMinor,
         targetVersionRevision, targetVersionBetaLevel);
+  }
+
+  @SafeVarargs
+  @Nullable
+  @Contract(pure = true)
+  private static <T> T coalesce(final T... objects) {
+    for (final T o : objects) {
+      if (o != null) {
+        return o;
+      }
+    }
+    return null;
   }
 
   @Nonnull
@@ -273,5 +370,9 @@ public class OrganisationParameters {
   @Nonnull
   public Patterns getPatterns() {
     return patterns;
+  }
+
+  public Map<PropKey, String> getUploadParams() {
+    return Collections.unmodifiableMap(uploadParams);
   }
 }

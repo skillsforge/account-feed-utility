@@ -4,6 +4,7 @@ import com.skillsforge.accountfeeds.config.FileKey;
 import com.skillsforge.accountfeeds.config.OrganisationParameters;
 import com.skillsforge.accountfeeds.config.ProgramMode;
 import com.skillsforge.accountfeeds.config.ProgramState;
+import com.skillsforge.accountfeeds.exceptions.ParamException;
 import com.skillsforge.accountfeeds.inputmodels.InputGroup;
 import com.skillsforge.accountfeeds.inputmodels.InputGroupRole;
 import com.skillsforge.accountfeeds.inputmodels.InputUser;
@@ -66,6 +67,11 @@ public class ParsedFeedFiles {
   private final List<List<String>> groups = new LinkedList<>();
   @Nonnull
   private final List<List<String>> groupRoles = new LinkedList<>();
+
+  // This is initialised as part of checkLayout(), so the CHECK phase needs to run before this is
+  // accessed.
+  @Nonnull
+  private String metadataKeyCsvString = "";
 
   public ParsedFeedFiles(@Nonnull final ProgramState state,
       @Nonnull final OrganisationParameters orgParams) {
@@ -172,6 +178,7 @@ public class ParsedFeedFiles {
     }
 
     final List<String> metadataHeaders = header.subList(8, header.size());
+    this.metadataKeyCsvString = String.join(",", metadataHeaders);
     state.log(INFO, "Users file: Metadata columns are: %s.", metadataHeaders.toString());
 
     final Set<String> metadataHeadersSet = new HashSet<>(metadataHeaders);
@@ -336,5 +343,12 @@ public class ParsedFeedFiles {
 
     state.log(INFO, "+ Built %d InputUserRelationship object(s).", objects.size());
     return objects;
+  }
+
+  public String getMetadataKeyCsvString() throws ParamException {
+    if (metadataKeyCsvString.isEmpty()) {
+      throw new ParamException("Metadata Headers haven't been initialised yet.");
+    }
+    return metadataKeyCsvString;
   }
 }

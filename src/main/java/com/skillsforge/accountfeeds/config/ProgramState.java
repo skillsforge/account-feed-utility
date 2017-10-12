@@ -31,9 +31,6 @@ import static com.skillsforge.accountfeeds.config.LogLevel.ERROR;
 public class ProgramState {
 
   @Nonnull
-  public static final String ENV_SF_TOKEN = "SF_TOKEN";
-
-  @Nonnull
   private static final Options checkOptions = new Options();
   @Nonnull
   private static final Options lintOptions = new Options();
@@ -60,9 +57,23 @@ public class ProgramState {
     final Option optOutputLog =
         Option.builder("o").longOpt(PropKey.OUTPUT_LOG.argName()).hasArg().build();
     final Option optUrl =
-        Option.builder("u").longOpt(PropKey.URL.argName()).hasArg().required().build();
+        Option.builder("u").longOpt(PropKey.URL.argName()).hasArg().build();
     final Option optToken =
         Option.builder("t").longOpt(PropKey.TOKEN.argName()).hasArg().build();
+    final Option optOrgAlias =
+        Option.builder("a").longOpt(PropKey.ORG_ALIAS.argName()).hasArg().build();
+    final Option optFeedId =
+        Option.builder("i").longOpt(PropKey.FEED_ID.argName()).hasArg().build();
+    final Option optEmailList =
+        Option.builder("e").longOpt(PropKey.EMAIL_LIST.argName()).hasArg().build();
+    final Option optEmailSubject =
+        Option.builder("j").longOpt(PropKey.EMAIL_SUBJECT.argName()).hasArg().build();
+    final Option optAccountUsernameChanges =
+        Option.builder("c").longOpt(PropKey.USERNAME_CHANGES.argName()).build();
+    final Option optAccountExpiry =
+        Option.builder("x").longOpt(PropKey.ACCOUNT_EXPIRE_DELAY.argName()).hasArg().build();
+    final Option optRelationshipExpiry =
+        Option.builder("r").longOpt(PropKey.RELATIONSHIP_EXPIRE_DELAY.argName()).hasArg().build();
 
     checkOptions.addOption(optUsers)
         .addOption(optUserGroups)
@@ -90,9 +101,17 @@ public class ProgramState {
         .addOption(optGroups)
         .addOption(optGroupRoles)
         .addOption(optSourceDir)
+        .addOption(optStateFilename)
         .addOption(optOutputLog)
         .addOption(optUrl)
-        .addOption(optToken);
+        .addOption(optToken)
+        .addOption(optOrgAlias)
+        .addOption(optFeedId)
+        .addOption(optEmailList)
+        .addOption(optEmailSubject)
+        .addOption(optAccountUsernameChanges)
+        .addOption(optAccountExpiry)
+        .addOption(optRelationshipExpiry);
   }
 
   @Nonnull
@@ -103,6 +122,8 @@ public class ProgramState {
   private final PrintStream outputLogStream;
   @Nonnull
   private final Collection<LogLine> allLogLines = new LinkedList<>();
+  @Nonnull
+  private final Collection<LogLine> licenceLogLines = new LinkedList<>();
   @Nonnull
   private ProgramMode programMode = ProgramMode.HELP;
   private boolean fatalErrorEncountered = false;
@@ -183,7 +204,6 @@ public class ProgramState {
     properties.putIfAbsent(PropKey.USER_RELATIONSHIPS_FILENAME, "UserRelationships.csv");
     properties.putIfAbsent(PropKey.GROUPS_FILENAME, "Groups.csv");
     properties.putIfAbsent(PropKey.GROUP_ROLES_FILENAME, "GroupRoles.csv");
-    properties.putIfAbsent(PropKey.TOKEN, System.getenv(ENV_SF_TOKEN));
 
     // Open all the necessary files:
     for (final FileKey key : FileKey.values()) {
@@ -297,10 +317,25 @@ public class ProgramState {
         + "  upload            Begin an account sync on the specified SkillsForge instance.\n"
         + '\n'
         + "    -s --source-dir=<path>    The directory containing a set of 'well-named' files.\n"
-        + "    -o --output-log=<path>    File to log problems to (defaults to stdout).\n"
+        + "    -p --state-file=<path>    Path to the instance-specific 'state' file.\n"
+        + "    -o --output-log=<path>    File to log problems to (defaults to stdout).\n\n"
+        + ""
+        + "    The following options override any options specified in the state file.\n"
         + "    -u --url=<url>            Address of the SkillsForge account upload application.\n"
         + "    -t --token=<token>        Pre-shared token to authenticate the account upload.\n"
         + "                              If not specified, the SF_TOKEN environment var is used.\n"
+        + "    -a --org-alias=<org>      Organisation ID for newly created accounts.\n"
+        + "    -i --feed-id=<id>                  Account feed identifier.\n"
+        + "    -e --email-to=<addr[,addr[,...]]>  Report address list (must not contain spaces).\n"
+        + "    -j --email-subject=<subject>       Subject for the report email - %RESULT% will\n"
+        + "                                       be replaced with a summary.\n"
+        + "    -c --allow-username-changes        Permits a user in a feed (identified by their\n"
+        + "                                       user ID) to update their login username to a\n"
+        + "                                       new value.\n"
+        + "    -x --account-expiry-days      The number of days before an account not appearing \n"
+        + "                                  in this feed is archived.\n"
+        + "    -r --relationship-expiry-days The number of days before a relationship not within \n"
+        + "                                  this feed is deleted.\n"
         + "\n\n"
         + "The following options apply to all modes:\n"
         + "    --users-filename=<name>               Alternate filename of Users.csv\n"
@@ -318,6 +353,11 @@ public class ProgramState {
   public final void log(@Nonnull final LogLevel lvl, @Nonnull final String fmt,
       final Object... args) {
     allLogLines.add(new LogLine(lvl, fmt, args));
+  }
+
+  public final void licenceLog(@Nonnull final LogLevel lvl, @Nonnull final String fmt,
+      final Object... args) {
+    licenceLogLines.add(new LogLine(lvl, fmt, args));
   }
 
   @Nullable
@@ -367,6 +407,17 @@ public class ProgramState {
         allLogLines.stream().filter(LogLine::isWarning).count(),
         allLogLines.stream().filter(LogLine::isError).count()
     );
-    allLogLines.forEach(logLine -> logLine.outputLogLine(outputLogStream));
+
+    if (!licenceLogLines.isEmpty()) {
+      outputLogStream.printf("Licencing Information:\n"
+                             + "======================\n");
+      licenceLogLines.forEach(logLine -> logLine.outputLogLine(outputLogStream));
+    }
+
+    if (!allLogLines.isEmpty()) {
+      outputLogStream.printf("\nAccount Feed Utility Output:\n"
+                             + "============================\n");
+      allLogLines.forEach(logLine -> logLine.outputLogLine(outputLogStream));
+    }
   }
 }
