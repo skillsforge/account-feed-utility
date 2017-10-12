@@ -129,7 +129,8 @@
   "minimumRequiredRelationships": {
     "ROLE_PGR": {
       "ROLE_SUPERVISOR": 1,
-      "ROLE_GRADADMIN": 1
+      "ROLE_GRADADMIN": 1,
+      "ROLE_REGISTRY": 1
     }
   },
   "headcountLimits": {
