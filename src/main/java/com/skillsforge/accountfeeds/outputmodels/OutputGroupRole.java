@@ -1,6 +1,6 @@
 package com.skillsforge.accountfeeds.outputmodels;
 
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.jetbrains.annotations.Contract;
 
 import java.util.Comparator;
@@ -12,7 +12,6 @@ import javax.annotation.Nonnull;
  * @date 27-May-2017
  */
 public class OutputGroupRole {
-
   @Nonnull
   public static final Comparator<? super OutputGroupRole> CSV_SORTER =
       (left, right) -> left.getSortString().compareToIgnoreCase(right.getSortString());
@@ -22,7 +21,10 @@ public class OutputGroupRole {
   @Nonnull
   private final String roleName;
 
-  public OutputGroupRole(@Nonnull final String groupAlias, @Nonnull final String roleName) {
+  public OutputGroupRole(
+      @Nonnull final String groupAlias,
+      @Nonnull final String roleName) {
+
     this.groupAlias = groupAlias;
     this.roleName = roleName;
   }

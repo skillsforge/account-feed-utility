@@ -26,7 +26,10 @@ public class InputGroupRole {
   @Nullable
   private final String roleAlias;
 
-  public InputGroupRole(@Nonnull final ProgramState state, @Nonnull final List<String> line) {
+  public InputGroupRole(
+      @Nonnull final ProgramState state,
+      @Nonnull final List<String> line) {
+
     this.state = state;
 
     if (line.size() < 2) {
@@ -45,7 +48,9 @@ public class InputGroupRole {
 
   @Nullable
   @Contract(pure = true)
-  public OutputGroupRole validateAllFields(@Nonnull final Indexes indexes) {
+  public OutputGroupRole validateAllFields(
+      @Nonnull final Indexes indexes) {
+
     final String oGroupAlias = CommonMethods.validateGroupAlias(groupAlias, indexes, state, this);
     final String oRoleAlias = validateGroupRole(roleAlias, indexes);
 
@@ -58,8 +63,10 @@ public class InputGroupRole {
 
   @Nullable
   @Contract(pure = true, value = "null,_ -> null")
-  private String validateGroupRole(@Nullable final String oRoleAlias,
+  private String validateGroupRole(
+      @Nullable final String oRoleAlias,
       @Nonnull final Indexes indexes) {
+
     if (oRoleAlias == null) {
       state.log(ERROR, "The role alias column is blank in %s - this must be filled with a "
                        + "valid group-role.", this.toString());

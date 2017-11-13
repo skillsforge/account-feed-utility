@@ -21,12 +21,16 @@ public class InputUserGroup {
   @SuppressWarnings("FieldNotUsedInToString")
   @Nonnull
   private final ProgramState state;
+
   @Nullable
   private final String userId;
   @Nullable
   private final String groupAlias;
 
-  public InputUserGroup(@Nonnull final ProgramState state, @Nonnull final List<String> line) {
+  public InputUserGroup(
+      @Nonnull final ProgramState state,
+      @Nonnull final List<String> line) {
+
     this.state = state;
 
     if (line.size() < 2) {
@@ -44,7 +48,9 @@ public class InputUserGroup {
   }
 
   @Nullable
-  public OutputUserGroup validateAllFields(@Nonnull final Indexes indexes) {
+  public OutputUserGroup validateAllFields(
+      @Nonnull final Indexes indexes) {
+
     final String oUserId = CommonMethods.validateUserId(userId, indexes, state, this, "");
     final String oGroupAlias = CommonMethods.validateGroupAlias(groupAlias, indexes, state, this);
     if ((oUserId == null) || (oGroupAlias == null)) {

@@ -1,6 +1,6 @@
 package com.skillsforge.accountfeeds.outputmodels;
 
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.jetbrains.annotations.Contract;
 
 import java.util.Comparator;
@@ -11,6 +11,7 @@ import javax.annotation.Nonnull;
  * @author aw1459
  * @date 27-May-2017
  */
+@SuppressWarnings("BooleanParameter")
 public class OutputUserRelationship {
 
   @Nonnull
@@ -27,9 +28,13 @@ public class OutputUserRelationship {
   private final String roleAliasRight;
   private final boolean delete;
 
-  public OutputUserRelationship(@Nonnull final String userIdLeft, @Nonnull final String userIdRight,
-      @Nonnull final String roleAliasLeft, @Nonnull final String roleAliasRight,
+  public OutputUserRelationship(
+      @Nonnull final String userIdLeft,
+      @Nonnull final String userIdRight,
+      @Nonnull final String roleAliasLeft,
+      @Nonnull final String roleAliasRight,
       final boolean delete) {
+
     this.userIdLeft = userIdLeft;
     this.userIdRight = userIdRight;
     this.roleAliasLeft = roleAliasLeft;

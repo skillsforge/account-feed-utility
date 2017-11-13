@@ -35,7 +35,10 @@ public enum PropKey {
   @Nullable
   private final String fileDescription;
 
-  PropKey(@Nonnull final String cmdlineArg, @Nullable final String fileDesc) {
+  PropKey(
+      @Nonnull final String cmdlineArg,
+      @Nullable final String fileDesc) {
+
     this.argName = cmdlineArg;
     this.fileDescription = fileDesc;
   }

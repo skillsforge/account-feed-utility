@@ -3,7 +3,7 @@ package com.skillsforge.accountfeeds.input;
 import com.skillsforge.accountfeeds.config.ProgramState;
 import com.skillsforge.accountfeeds.exceptions.CsvCheckedException;
 
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.jetbrains.annotations.Contract;
 
 import java.io.BufferedReader;
@@ -26,6 +26,7 @@ import static com.skillsforge.accountfeeds.config.LogLevel.WARN;
  * @date 25-Nov-2016
  */
 public class CsvReader extends BufferedReader {
+  @Nonnull
   private static final Pattern QUOTE_MATCHER = Pattern.compile("\\A\"(.*)\"\\z");
   @Nonnull
   private final ProgramState state;
@@ -59,7 +60,12 @@ public class CsvReader extends BufferedReader {
     return Collections.unmodifiableList(new ArrayList<>(fullFile));
   }
 
-  @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod"})
+  @SuppressWarnings({
+      "OverlyComplexMethod",
+      "OverlyLongMethod",
+      "MethodWithMultipleLoops",
+      "NumericCastThatLosesPrecision"
+  })
   @Nullable
   public List<String> parseLine() throws IOException, CsvCheckedException {
 
@@ -177,7 +183,7 @@ public class CsvReader extends BufferedReader {
     } while (true);
   }
 
-  public static String stripEnclosingQuotes(final CharSequence quotedString) {
+  public static String stripEnclosingQuotes(@Nonnull final CharSequence quotedString) {
     return QUOTE_MATCHER.matcher(quotedString).replaceAll("$1");
   }
 
