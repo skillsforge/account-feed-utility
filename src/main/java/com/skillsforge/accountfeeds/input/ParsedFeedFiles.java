@@ -18,6 +18,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -40,7 +41,7 @@ import static com.skillsforge.accountfeeds.config.LogLevel.WARN;
 public class ParsedFeedFiles {
 
   @Nonnull
-  private static final Charset UTF8 = Charset.forName("UTF-8");
+  private static final Charset UTF8 = StandardCharsets.UTF_8;
   @Nonnull
   private static final String[] USERS_HEADERS_V5 =
       {"UserID", "Username", "Email", "Title", "Forename", "Surname", "Disabled", "Archived"};

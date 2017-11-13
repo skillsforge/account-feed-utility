@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -57,7 +58,7 @@ import static com.skillsforge.accountfeeds.config.LogLevel.WARN;
 public class MainProgram {
 
   @Nonnull
-  private static final Charset UTF8 = Charset.forName("UTF-8");
+  private static final Charset UTF8 = StandardCharsets.UTF_8;
   @Nonnull
   private static final ContentType CSV_CONTENT_TYPE = ContentType.create("text/csv", UTF8);
   @Nonnull
@@ -495,7 +496,7 @@ public class MainProgram {
     final MultipartEntityBuilder entityBuilder = MultipartEntityBuilder
         .create()
         .setBoundary("------------------------boundary-" + UUID.randomUUID())
-        .setCharset(Charset.forName("UTF-8"))
+        .setCharset(UTF8)
         .addBinaryBody("csvFile_Users",
             usersFile, CSV_CONTENT_TYPE, "Users.csv")
         .addBinaryBody("csvFile_UserGroup",
