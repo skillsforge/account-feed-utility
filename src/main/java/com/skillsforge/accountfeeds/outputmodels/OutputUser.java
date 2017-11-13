@@ -2,7 +2,7 @@ package com.skillsforge.accountfeeds.outputmodels;
 
 import com.skillsforge.accountfeeds.config.ProgramState;
 
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.jetbrains.annotations.Contract;
 
 import java.util.Collection;
@@ -23,7 +23,13 @@ import static com.skillsforge.accountfeeds.config.LogLevel.WARN;
  * @author aw1459
  * @date 27-May-2017
  */
-@SuppressWarnings({"FieldNotUsedInToString", "TypeMayBeWeakened"})
+@SuppressWarnings({
+    "FieldNotUsedInToString",
+    "TypeMayBeWeakened",
+    "ClassWithTooManyFields",
+    "NegativelyNamedBooleanVariable"
+    , "BooleanParameter"
+})
 public class OutputUser {
   @Nonnull
   public static final Comparator<? super OutputUser> CSV_SORTER =
@@ -41,7 +47,6 @@ public class OutputUser {
   private final String forename;
   @Nonnull
   private final String surname;
-  @SuppressWarnings("NegativelyNamedBooleanVariable")
   private final boolean disabled;
   private final boolean archived;
   @Nonnull
@@ -58,11 +63,18 @@ public class OutputUser {
   private final Map<String, Set<String>> userRelationshipsHeldOverOtherUsers = new HashMap<>();
   @Nonnull
   private final Map<String, Set<String>> userRelationshipsThisUserIsASubjectOf = new HashMap<>();
-  public OutputUser(@Nonnull final String userId, @Nonnull final String userName,
-      @Nonnull final String email, @Nonnull final String title, @Nonnull final String forename,
+
+  public OutputUser(
+      @Nonnull final String userId,
+      @Nonnull final String userName,
+      @Nonnull final String email,
+      @Nonnull final String title,
+      @Nonnull final String forename,
       @Nonnull final String surname,
-      @SuppressWarnings("NegativelyNamedBooleanVariable") final boolean disabled,
-      final boolean archived, @Nonnull final Map<String, String> metadata) {
+      final boolean disabled,
+      final boolean archived,
+      @Nonnull final Map<String, String> metadata) {
+
     this.userId = userId;
     this.userName = userName;
     this.email = email;
@@ -96,8 +108,10 @@ public class OutputUser {
         userRelationshipsSubject.toString());
   }
 
-  public void addGroup(@Nonnull final ProgramState state,
+  public void addGroup(
+      @Nonnull final ProgramState state,
       @Nonnull final OutputUserGroup userGroup) {
+
     if (groupNames.contains(userGroup.getGroupAlias())) {
       state.log(WARN, "UserGroup mapping of '%s' -> '%s' is specified more than once.",
           userId, userGroup.getGroupAlias());
@@ -107,8 +121,10 @@ public class OutputUser {
     userGroups.add(userGroup);
   }
 
-  public void addRelationshipHeldOverAnotherUser(@Nonnull final ProgramState state,
+  public void addRelationshipHeldOverAnotherUser(
+      @Nonnull final ProgramState state,
       @Nonnull final OutputUserRelationship rel) {
+
     if (userRelationshipsHeldOverOtherUsers.containsKey(rel.getRoleAliasLeft())) {
       if (userRelationshipsHeldOverOtherUsers
           .get(rel.getRoleAliasLeft())
@@ -124,7 +140,9 @@ public class OutputUser {
     userRelationshipsHeld.add(rel);
   }
 
-  public void addRelationshipThisUserIsASubjectOf(@Nonnull final OutputUserRelationship rel) {
+  public void addRelationshipThisUserIsASubjectOf(
+      @Nonnull final OutputUserRelationship rel) {
+
     if (userRelationshipsThisUserIsASubjectOf.containsKey(rel.getRoleAliasLeft())) {
       if (userRelationshipsThisUserIsASubjectOf
           .get(rel.getRoleAliasLeft())
@@ -152,7 +170,9 @@ public class OutputUser {
 
   @Nonnull
   @Contract(pure = true)
-  public String getCsvRow(@Nonnull final Collection<String> metadataHeaders) {
+  public String getCsvRow(
+      @Nonnull final Collection<String> metadataHeaders) {
+
     return StringEscapeUtils.escapeCsv(userId) + ',' +
            StringEscapeUtils.escapeCsv(userName) + ',' +
            StringEscapeUtils.escapeCsv(email) + ',' +
@@ -177,7 +197,6 @@ public class OutputUser {
   public Stream<OutputUserRelationship> getRelationshipsHeld() {
     return userRelationshipsHeld.stream();
   }
-
 
   @Nonnull
   @Contract(pure = true)

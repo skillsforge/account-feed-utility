@@ -18,6 +18,7 @@ import static com.skillsforge.accountfeeds.config.LogLevel.WARN;
  * @author aw1459
  * @date 28-May-2017
  */
+@SuppressWarnings("UtilityClass")
 public final class CommonMethods {
 
   private CommonMethods() {
@@ -25,7 +26,10 @@ public final class CommonMethods {
 
   @Nullable
   @Contract(pure = true)
-  static String getFieldFromLine(@Nonnull final List<String> line, final int indexFrom0) {
+  static String getFieldFromLine(
+      @Nonnull final List<String> line,
+      final int indexFrom0) {
+
     return (line.size() > indexFrom0)
            ? line.get(indexFrom0)
            : null;
@@ -33,9 +37,12 @@ public final class CommonMethods {
 
   @Nullable
   @Contract(pure = true, value = "null,_,_,_ -> null")
-  static String validateGroupAlias(@Nullable final String oGroupAlias,
-      @Nonnull final Indexes indexes, @Nonnull final ProgramState state,
+  static String validateGroupAlias(
+      @Nullable final String oGroupAlias,
+      @Nonnull final Indexes indexes,
+      @Nonnull final ProgramState state,
       @Nonnull final Object inputObject) {
+
     if ((oGroupAlias == null) || oGroupAlias.trim().isEmpty()) {
       state.log(
           ERROR, "The GroupAlias column is blank in %s - must be filled with a GroupAlias.",
@@ -65,9 +72,13 @@ public final class CommonMethods {
 
   @Nullable
   @Contract(pure = true, value = "null,_,_,_,_ -> null")
-  static String validateUserId(@Nullable final String oUserId, @Nonnull final Indexes indexes,
-      @Nonnull final ProgramState state, @Nonnull final Object inputObject,
+  static String validateUserId(
+      @Nullable final String oUserId,
+      @Nonnull final Indexes indexes,
+      @Nonnull final ProgramState state,
+      @Nonnull final Object inputObject,
       @Nonnull final String desc) {
+
     if ((oUserId == null) || oUserId.trim().isEmpty()) {
       state.log(
           ERROR, "The %sUserID column is blank in %s - both must be filled with a UserID.",
@@ -97,8 +108,12 @@ public final class CommonMethods {
 
   @Nonnull
   @Contract(pure = true)
-  static String validateTrueFalse(@Nullable final String field, @Nonnull final ProgramState state,
-      @Nonnull final Object inputObject, @Nonnull final String name) {
+  static String validateTrueFalse(
+      @Nullable final String field,
+      @Nonnull final ProgramState state,
+      @Nonnull final Object inputObject,
+      @Nonnull final String name) {
+
     if ((field == null) || field.trim().isEmpty()) {
       state.log(ERROR, true,
           "[ERROR-LINTABLE] '%s' not specified in %s - must be true or false.",
@@ -117,9 +132,13 @@ public final class CommonMethods {
 
   @Nullable
   @Contract(value = "null,_,_,_,_ -> null", pure = true)
-  static String validateMandatory(@Nullable final String field,
-      @Nonnull final Function<String, Boolean> matcher, @Nonnull final String name,
-      @Nonnull final ProgramState state, @Nonnull final Object inputObject) {
+  static String validateMandatory(
+      @Nullable final String field,
+      @Nonnull final Function<String, Boolean> matcher,
+      @Nonnull final String name,
+      @Nonnull final ProgramState state,
+      @Nonnull final Object inputObject) {
+
     if ((field == null) || field.trim().isEmpty()) {
       state.log(ERROR, "The %s in %s is blank.", name, inputObject.toString());
       return null;
@@ -139,10 +158,14 @@ public final class CommonMethods {
 
   @Nonnull
   @Contract(pure = true)
-  static String validateNonMandatory(@Nullable final String field,
-      @Nonnull final Function<String, Boolean> matcher, @Nonnull final String name,
-      @Nonnull final ProgramState state, @Nonnull final Object inputObject,
+  static String validateNonMandatory(
+      @Nullable final String field,
+      @Nonnull final Function<String, Boolean> matcher,
+      @Nonnull final String name,
+      @Nonnull final ProgramState state,
+      @Nonnull final Object inputObject,
       final boolean warnIfMissing) {
+
     if ((field == null) || field.trim().isEmpty()) {
       if (warnIfMissing) {
         state.log(WARN, "The %s in %s is blank.", name, inputObject.toString());

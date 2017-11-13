@@ -3,7 +3,7 @@ package com.skillsforge.accountfeeds.input;
 import com.skillsforge.accountfeeds.config.ProgramState;
 import com.skillsforge.accountfeeds.exceptions.CsvCheckedException;
 
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -14,10 +14,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import javax.annotation.Nonnull;
+
 /**
  * @author alexw
  * @date 25-Nov-2016
  */
+@SuppressWarnings("OverlyLongMethod")
 public class CsvReaderUnitTest {
 
   @Test
@@ -51,6 +54,7 @@ public class CsvReaderUnitTest {
     }
   }
 
+  @Nonnull
   private static StringBuilder initStrings() {
     final StringBuilder stringBuilder = new StringBuilder();
     stringBuilder.append("1,2,3,4,5\n");

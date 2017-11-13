@@ -28,6 +28,7 @@ import static com.skillsforge.accountfeeds.config.LogLevel.ERROR;
  * @author aw1459
  * @date 26-May-2017
  */
+@SuppressWarnings({"UseOfSystemOutOrSystemErr", "OverlyComplexMethod", "BooleanParameter"})
 public class ProgramState {
 
   @Nonnull
@@ -132,8 +133,9 @@ public class ProgramState {
     outputLogStream = System.out;
   }
 
-  @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod"})
-  public ProgramState(final String[] programArgs) {
+  @SuppressWarnings({"OverlyLongMethod", "MethodWithMultipleLoops"})
+  public ProgramState(
+      @Nonnull final String[] programArgs) {
 
     // Presume the user doesn't know how to call the program
     if (programArgs.length == 0) {
@@ -230,10 +232,11 @@ public class ProgramState {
     outputLogStream = outputStream;
   }
 
-  @SuppressWarnings("OverlyComplexMethod")
   @Nullable
   @Contract(pure = true, value = "null -> null")
-  private File openFileWithAccessCheck(@Nullable final FileKey fileKey) {
+  private File openFileWithAccessCheck(
+      @Nullable final FileKey fileKey) {
+
     if (fileKey == null) {
       return null;
     }
@@ -279,7 +282,10 @@ public class ProgramState {
   }
 
   @Contract(pure = true)
-  private static boolean hasAccess(@Nonnull final AccessType accessType, @Nonnull final File file) {
+  private static boolean hasAccess(
+      @Nonnull final AccessType accessType,
+      @Nonnull final File file) {
+
     switch (accessType) {
       case READ_DIR:
         return file.isDirectory() && file.canRead();
@@ -350,19 +356,27 @@ public class ProgramState {
     this.fatalErrorEncountered = true;
   }
 
-  public final void log(@Nonnull final LogLevel lvl, @Nonnull final String fmt,
+  public final void log(
+      @Nonnull final LogLevel lvl,
+      @Nonnull final String fmt,
       final Object... args) {
+
     allLogLines.add(new LogLine(lvl, fmt, args));
   }
 
-  public final void licenceLog(@Nonnull final LogLevel lvl, @Nonnull final String fmt,
+  public final void licenceLog(
+      @Nonnull final LogLevel lvl,
+      @Nonnull final String fmt,
       final Object... args) {
+
     licenceLogLines.add(new LogLine(lvl, fmt, args));
   }
 
   @Nullable
   @Contract(pure = true, value = "null -> null")
-  public File getFile(@Nullable final FileKey key) {
+  public File getFile(
+      @Nullable final FileKey key) {
+
     return files.get(key);
   }
 
@@ -379,28 +393,29 @@ public class ProgramState {
 
   @Nullable
   @Contract(pure = true, value = "null -> null")
-  public String getProperty(@Nullable final PropKey key) {
+  public String getProperty(
+      @Nullable final PropKey key) {
+
     return properties.get(key);
   }
 
-  public final void log(@Nonnull final LogLine logLine) {
-    allLogLines.add(logLine);
-  }
+  public final void log(
+      @Nonnull final LogLevel lvl,
+      @Nonnull final String str) {
 
-  public final void log(@Nonnull final LogLevel lvl, @Nonnull final String str) {
     allLogLines.add(new LogLine(lvl, str));
   }
 
-  public final void log(@Nonnull final LogLevel lvl, final boolean lintable,
-      @Nonnull final String str) {
-    allLogLines.add(new LogLine(lvl, lintable, str));
-  }
+  public final void log(
+      @Nonnull final LogLevel lvl,
+      final boolean lintable,
+      @Nonnull final String fmt,
+      final Object... args) {
 
-  public final void log(@Nonnull final LogLevel lvl, final boolean lintable,
-      @Nonnull final String fmt, final Object... args) {
     allLogLines.add(new LogLine(lvl, lintable, fmt, args));
   }
 
+  @SuppressWarnings("resource")
   public void renderLog() {
     outputLogStream.printf("Feed Utility Results: Warnings: [%d], Errors: [%d]\n"
                            + "=========================================================\n\n",

@@ -11,15 +11,19 @@ import javax.annotation.Nullable;
  * @author aw1459
  * @date 28-May-2017
  */
-@SuppressWarnings("MethodMayBeStatic")
+@SuppressWarnings({"MethodMayBeStatic", "SameReturnValue"})
 public final class Patterns {
 
+  @Nonnull
   private static final Pattern USER_ID_REGEX_V5 = Pattern.compile("\\A[\\p{Alnum}'-:@_.]+\\z");
 
+  @Nonnull
   private static final Pattern USERNAME_REGEX_V5 = Pattern.compile("\\A[\\p{L}\\p{Graph}]+\\z");
 
+  @Nonnull
   private static final Pattern EMAIL_REGEX_V5_9_AND_BELOW =
       Pattern.compile("\\A[\\p{L}\\p{Graph}&&[^@]]+@[\\p{L}\\p{Graph}&&[^@]]+\\z");
+  @Nonnull
   private static final Pattern EMAIL_REGEX_V5_10_BETA_5 =
       Pattern.compile(
           "\\A"
@@ -30,8 +34,10 @@ public final class Patterns {
           + "[a-zA-Z0-9\\-]+(\\.[a-zA-Z0-9\\-]+)*"
           + "\\z");
 
+  @Nonnull
   private static final Pattern NAME_REGEX_V5_9_AND_BELOW =
       Pattern.compile("[\\p{L}\\p{Graph} ]+");
+  @Nonnull
   private static final Pattern NAME_REGEX_V5_10_BETA_5 =
       Pattern.compile("\\A[\\p{L}\\p{Graph} ]+\\z");
 
@@ -42,26 +48,34 @@ public final class Patterns {
   }
 
   @Contract(value = "null -> false", pure = true)
-  public boolean isValidGroupAlias(@Nullable final CharSequence groupAlias) {
+  public boolean isValidGroupAlias(
+      @Nullable final CharSequence groupAlias) {
+
     return isValidUserId(groupAlias);
   }
 
   @Contract(value = "null -> false", pure = true)
-  public boolean isValidUserId(@Nullable final CharSequence userId) {
+  public boolean isValidUserId(
+      @Nullable final CharSequence userId) {
+
     if (userId == null) {
       return false;
     }
     return USER_ID_REGEX_V5.matcher(userId).matches();
   }
 
-  @SuppressWarnings("unused")
+  @SuppressWarnings({"unused", "MethodReturnAlwaysConstant", "SameReturnValue"})
   @Contract(value = "_ -> true", pure = true)
-  public boolean isAlwaysValid(@Nonnull final CharSequence unused) {
+  public boolean isAlwaysValid(
+      @Nonnull final CharSequence unused) {
+
     return true;
   }
 
   @Contract(value = "null -> false", pure = true)
-  public boolean isValidUsername(@Nullable final CharSequence username) {
+  public boolean isValidUsername(
+      @Nullable final CharSequence username) {
+
     if (username == null) {
       return false;
     }
@@ -69,7 +83,9 @@ public final class Patterns {
   }
 
   @Contract(value = "null -> false", pure = true)
-  public boolean isValidEmail(@Nullable final CharSequence email) {
+  public boolean isValidEmail(
+      @Nullable final CharSequence email) {
+
     if (email == null) {
       return false;
     }
@@ -79,7 +95,9 @@ public final class Patterns {
   }
 
   @Contract(value = "null -> false", pure = true)
-  public boolean isValidName(@Nullable final CharSequence name) {
+  public boolean isValidName(
+      @Nullable final CharSequence name) {
+
     if (name == null) {
       return false;
     }

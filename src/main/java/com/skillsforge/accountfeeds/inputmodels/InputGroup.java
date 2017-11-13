@@ -24,6 +24,8 @@ public class InputGroup {
   @Nonnull
   private final ProgramState state;
   @SuppressWarnings("FieldNotUsedInToString")
+  @Nonnull
+  private final OrganisationParameters orgParams;
 
   @Nullable
   private final String groupAlias;
@@ -34,12 +36,11 @@ public class InputGroup {
   @Nullable
   private final String delete;
 
-  @SuppressWarnings("FieldNotUsedInToString")
-  @Nonnull
-  private final OrganisationParameters orgParams;
-
-  public InputGroup(@Nonnull final ProgramState state, @Nonnull final List<String> line,
+  public InputGroup(
+      @Nonnull final ProgramState state,
+      @Nonnull final List<String> line,
       @Nonnull final OrganisationParameters orgParams) {
+
     this.state = state;
 
     if (line.size() < 4) {

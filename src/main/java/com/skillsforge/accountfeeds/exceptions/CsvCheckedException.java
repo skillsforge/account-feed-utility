@@ -6,20 +6,10 @@ package com.skillsforge.accountfeeds.exceptions;
  */
 @SuppressWarnings({"SerializableHasSerializationMethods", "DeserializableClassInSecureContext"})
 public class CsvCheckedException extends Exception {
-  private static final long serialVersionUID = 3296754079400623101L;
 
-  public CsvCheckedException() {
-  }
+  private static final long serialVersionUID = 4563570790316136077L;
 
   public CsvCheckedException(final String s) {
     super(s);
-  }
-
-  public CsvCheckedException(final String s, final Throwable throwable) {
-    super(s, throwable);
-  }
-
-  public CsvCheckedException(final Throwable throwable) {
-    super(throwable);
   }
 }

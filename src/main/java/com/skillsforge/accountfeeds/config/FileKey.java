@@ -34,8 +34,11 @@ public enum FileKey {
   @Nullable
   private final PropKey parentPathProp;
 
-  FileKey(@Nullable final PropKey parentPathProp, @Nonnull final PropKey filePathProp,
+  FileKey(
+      @Nullable final PropKey parentPathProp,
+      @Nonnull final PropKey filePathProp,
       @Nonnull final AccessType accessType) {
+
     this.parentPathProp = parentPathProp;
     this.filePathProp = filePathProp;
     this.accessType = accessType;
@@ -53,7 +56,11 @@ public enum FileKey {
 
   @Nonnull
   public String getFileDescription() {
-    return filePathProp.getFileDescription();
+    final String toReturn = filePathProp.getFileDescription();
+    if (toReturn == null) {
+      return "[null file description]";
+    }
+    return toReturn;
   }
 
   @Nonnull

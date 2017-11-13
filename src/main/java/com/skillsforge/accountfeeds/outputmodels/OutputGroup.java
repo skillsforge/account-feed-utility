@@ -2,7 +2,7 @@ package com.skillsforge.accountfeeds.outputmodels;
 
 import com.skillsforge.accountfeeds.config.ProgramState;
 
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.jetbrains.annotations.Contract;
 
 import java.util.Collection;
@@ -37,8 +37,13 @@ public class OutputGroup {
   @Nonnull
   private final Collection<String> roleNames = new HashSet<>();
 
-  public OutputGroup(@Nonnull final String groupAlias, @Nonnull final String groupName,
-      @Nonnull final String groupDescription, final boolean delete) {
+  @SuppressWarnings("BooleanParameter")
+  public OutputGroup(
+      @Nonnull final String groupAlias,
+      @Nonnull final String groupName,
+      @Nonnull final String groupDescription,
+      final boolean delete) {
+
     this.groupAlias = groupAlias;
     this.groupName = groupName;
     this.groupDescription = groupDescription;
@@ -55,11 +60,15 @@ public class OutputGroup {
   @Nonnull
   @Contract(pure = true)
   public String toString() {
+
     return String.format("Group['%s','%s','%s','%s',roles=%s]", groupAlias, groupName,
         groupDescription, delete ? "true" : "false", groupRoles.toString());
   }
 
-  public void addRole(@Nonnull final ProgramState state, @Nonnull final OutputGroupRole groupRole) {
+  public void addRole(
+      @Nonnull final ProgramState state,
+      @Nonnull final OutputGroupRole groupRole) {
+
     if (roleNames.contains(groupRole.getRoleName())) {
       state.log(WARN, "GroupRole mapping of '%s' -> '%s' is specified more than once.",
           groupAlias, groupRole.getRoleName());

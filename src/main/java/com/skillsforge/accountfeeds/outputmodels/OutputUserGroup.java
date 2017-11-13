@@ -1,6 +1,6 @@
 package com.skillsforge.accountfeeds.outputmodels;
 
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.jetbrains.annotations.Contract;
 
 import java.util.Comparator;
@@ -22,7 +22,10 @@ public class OutputUserGroup {
   @Nonnull
   private final String groupAlias;
 
-  public OutputUserGroup(@Nonnull final String userId, @Nonnull final String groupAlias) {
+  public OutputUserGroup(
+      @Nonnull final String userId,
+      @Nonnull final String groupAlias) {
+
     this.userId = userId;
     this.groupAlias = groupAlias;
   }

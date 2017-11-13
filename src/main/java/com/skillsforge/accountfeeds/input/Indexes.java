@@ -25,7 +25,7 @@ import static com.skillsforge.accountfeeds.config.LogLevel.WARN;
  * @author aw1459
  * @date 28-May-2017
  */
-@SuppressWarnings("TypeMayBeWeakened")
+@SuppressWarnings({"TypeMayBeWeakened", "ClassWithTooManyFields"})
 public class Indexes {
 
   @Nonnull
@@ -55,6 +55,7 @@ public class Indexes {
   @Nonnull
   private final Set<String> rolesForRelationshipsUpperCase = new HashSet<>();
 
+  @Nonnull
   private final OrganisationParameters orgParams;
 
   public Indexes(
@@ -83,8 +84,10 @@ public class Indexes {
     buildGroupIndexes(state, groups);
   }
 
-  private void buildGroupIndexes(@Nonnull final ProgramState state,
+  private void buildGroupIndexes(
+      @Nonnull final ProgramState state,
       @Nonnull final Iterable<InputGroup> groups) {
+
     state.log(INFO, "Building Group indexes:");
 
     for (final InputGroup group : groups) {
@@ -126,8 +129,10 @@ public class Indexes {
         groupsByAlias.size(), groupsByName.size());
   }
 
-  private void buildUserIndexes(@Nonnull final ProgramState state,
+  private void buildUserIndexes(
+      @Nonnull final ProgramState state,
       @Nonnull final Iterable<InputUser> users) {
+
     state.log(INFO, "Building User indexes:");
 
     for (final InputUser user : users) {
@@ -178,7 +183,9 @@ public class Indexes {
 
   @Nullable
   @Contract(pure = true, value = "null -> null")
-  public OutputUser getCompiledUserByUserId(@Nullable final String userId) {
+  public OutputUser getCompiledUserByUserId(
+      @Nullable final String userId) {
+
     if (userId == null) {
       return null;
     }
@@ -187,7 +194,9 @@ public class Indexes {
 
   @Nullable
   @Contract(pure = true, value = "null -> null")
-  public OutputGroup getCompiledGroupByGroupAlias(@Nullable final String groupAlias) {
+  public OutputGroup getCompiledGroupByGroupAlias(
+      @Nullable final String groupAlias) {
+
     if (groupAlias == null) {
       return null;
     }
@@ -196,42 +205,56 @@ public class Indexes {
 
   @Nullable
   @Contract(pure = true)
-  public InputUser getUserByUserIdIgnoreCase(@Nonnull final String userId) {
+  public InputUser getUserByUserIdIgnoreCase(
+      @Nonnull final String userId) {
+
     return usersByUserIdLowerCase.get(userId.trim().toLowerCase());
   }
 
   @Contract(pure = true)
-  public boolean userIdHasMismatchedCase(@Nonnull final String userId) {
+  public boolean userIdHasMismatchedCase(
+      @Nonnull final String userId) {
+
     return !usersByUserId.containsKey(userId.trim())
            && usersByUserIdLowerCase.containsKey(userId.trim().toLowerCase());
   }
 
   @Nullable
   @Contract(pure = true)
-  public InputGroup getGroupByAliasIgnoreCase(@Nonnull final String groupAlias) {
+  public InputGroup getGroupByAliasIgnoreCase(
+      @Nonnull final String groupAlias) {
+
     return groupsByAliasUpperCase.get(groupAlias.trim().toUpperCase());
   }
 
   @Contract(pure = true)
-  public boolean groupAliasHasMismatchedCase(@Nonnull final String groupAlias) {
+  public boolean groupAliasHasMismatchedCase(
+      @Nonnull final String groupAlias) {
+
     return !groupsByAlias.containsKey(groupAlias.trim())
            && groupsByAliasUpperCase.containsKey(groupAlias.trim().toUpperCase());
   }
 
   @Contract(pure = true)
-  public boolean rolesForRelationshipsContainsIgnoreCase(@Nonnull final String roleName) {
+  public boolean rolesForRelationshipsContainsIgnoreCase(
+      @Nonnull final String roleName) {
+
     return rolesForRelationshipsUpperCase.contains(roleName.trim().toUpperCase());
   }
 
   @Contract(pure = true)
-  public boolean rolesForRelationshipsHasMismatchedCase(@Nonnull final String roleName) {
+  public boolean rolesForRelationshipsHasMismatchedCase(
+      @Nonnull final String roleName) {
+
     return !rolesForRelationships.contains(roleName.trim())
            && rolesForRelationshipsUpperCase.contains(roleName.trim().toUpperCase());
   }
 
   @Nullable
   @Contract(pure = true)
-  public String correctRelationshipRoleCase(@Nonnull final String roleName) {
+  public String correctRelationshipRoleCase(
+      @Nonnull final String roleName) {
+
     for (final String role : rolesForRelationships) {
       if (role.trim().equalsIgnoreCase(roleName.trim())) {
         return role;
@@ -241,19 +264,25 @@ public class Indexes {
   }
 
   @Contract(pure = true)
-  public boolean rolesForGroupsContainsIgnoreCase(@Nonnull final String roleName) {
+  public boolean rolesForGroupsContainsIgnoreCase(
+      @Nonnull final String roleName) {
+
     return rolesForGroupsUpperCase.contains(roleName.trim().toUpperCase());
   }
 
   @Contract(pure = true)
-  public boolean rolesForGroupsHasMismatchedCase(@Nonnull final String roleName) {
+  public boolean rolesForGroupsHasMismatchedCase(
+      @Nonnull final String roleName) {
+
     return !rolesForGroups.contains(roleName.trim()) && rolesForGroupsUpperCase.contains(
         roleName.trim().toUpperCase());
   }
 
   @Nullable
   @Contract(pure = true)
-  public String correctGroupRoleCase(@Nonnull final String roleName) {
+  public String correctGroupRoleCase(
+      @Nonnull final String roleName) {
+
     for (final String role : rolesForGroups) {
       if (role.trim().equalsIgnoreCase(roleName.trim())) {
         return role;

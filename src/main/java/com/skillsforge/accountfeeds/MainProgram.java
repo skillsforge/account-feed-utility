@@ -44,6 +44,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import static com.skillsforge.accountfeeds.config.LogLevel.ERROR;
 import static com.skillsforge.accountfeeds.config.LogLevel.INFO;
@@ -56,16 +57,20 @@ import static com.skillsforge.accountfeeds.config.LogLevel.WARN;
 public class MainProgram {
 
   @Nonnull
-  private static final String CR_LF = "\r\n";
+  private static final Charset UTF8 = Charset.forName("UTF-8");
+  @Nonnull
+  private static final ContentType CSV_CONTENT_TYPE = ContentType.create("text/csv", UTF8);
+  @Nonnull
+  private static final ContentType PARAM_CONTENT_TYPE = ContentType.create("text/plain", UTF8);
 
   private int exitCode = 0;
 
-  public MainProgram(final String[] args) {
+  public MainProgram(@Nonnull final String[] args) {
 
     // A state object that describes the parameters that the program is running under.  Mostly
     // immutable, apart from other classes can indicate that a fatal problem has occurred, and the
     // program should exit at the next convenient opportunity.
-    @Nonnull final ProgramState state = new ProgramState(args);
+    final ProgramState state = new ProgramState(args);
     if (state.hasFatalErrorBeenEncountered()) {
       state.log(ERROR, "Problems were encountered whilst starting up - exiting.\n");
       state.renderLog();
@@ -81,7 +86,7 @@ public class MainProgram {
     // relationship roles that a feed could assign users into, as well as version information for
     // the
     // organisation's current SkillsForge instance, and rules about their user metadata.  Immutable.
-    @Nonnull final OrganisationParameters orgParams = new OrganisationParameters(state);
+    final OrganisationParameters orgParams = new OrganisationParameters(state);
     if (state.hasFatalErrorBeenEncountered()) {
       state.log(ERROR,
           "Problems were encountered whilst reading the organisational state file - exiting.\n");
@@ -93,7 +98,7 @@ public class MainProgram {
     // A container structure for the input csv files, after having been parsed into lines and
     // fields.  The files will be checked for obvious CSV errors whilst constructing this object.
     // This class exposes methods for checking the SF-specific format of the files.
-    @Nonnull final ParsedFeedFiles feedFiles = new ParsedFeedFiles(state, orgParams);
+    final ParsedFeedFiles feedFiles = new ParsedFeedFiles(state, orgParams);
 
     if (state.hasFatalErrorBeenEncountered()) {
       state.log(ERROR, "Problems were encountered whilst parsing the input files - exiting.\n");
@@ -103,8 +108,8 @@ public class MainProgram {
     }
 
     // Sets of appropriately linted objects, suitable for re-creating a "mint-condition" feed from.
-    @Nonnull final Collection<OutputUser> compiledUsers = new HashSet<>();
-    @Nonnull final Collection<OutputGroup> compiledGroups = new HashSet<>();
+    final Collection<OutputUser> compiledUsers = new HashSet<>();
+    final Collection<OutputGroup> compiledGroups = new HashSet<>();
 
     // For every mode, run the full sanity check.
     check(state, orgParams, feedFiles, compiledUsers, compiledGroups);
@@ -127,10 +132,12 @@ public class MainProgram {
   @SuppressWarnings({
       "MethodWithMoreThanThreeNegations",
       "OverlyComplexMethod",
-      "OverlyCoupledMethod"
-      , "OverlyLongMethod"
+      "OverlyCoupledMethod",
+      "OverlyLongMethod",
+      "MethodWithMultipleLoops"
   })
-  private static void check(@Nonnull final ProgramState state,
+  private static void check(
+      @Nonnull final ProgramState state,
       @Nonnull final OrganisationParameters orgParams,
       @Nonnull final ParsedFeedFiles feedFiles,
       @Nonnull final Collection<OutputUser> compiledUsers,
@@ -319,7 +326,8 @@ public class MainProgram {
                .anyMatch(roleName::equals);
   }
 
-  private static void lint(@Nonnull final ProgramState state,
+  private static void lint(
+      @Nonnull final ProgramState state,
       @Nonnull final Collection<OutputUser> compiledUsers,
       @Nonnull final Collection<OutputGroup> compiledGroups) {
 
@@ -404,8 +412,10 @@ public class MainProgram {
     state.log(INFO, "+ Output all linted objects.\n");
   }
 
-  private static void writeOutToFile(@Nonnull final ProgramState state,
-      @Nonnull final Collection<String> headers, @Nonnull final FileKey fileType,
+  private static void writeOutToFile(
+      @Nonnull final ProgramState state,
+      @Nonnull final Collection<String> headers,
+      @Nonnull final FileKey fileType,
       @Nonnull final Consumer<PrintStream> csvLineOutputConsumer) {
 
     state.log(INFO, "Writing new %s file...", fileType.getFileDescription());
@@ -435,8 +445,10 @@ public class MainProgram {
     state.log(INFO, " ... %s file written successfully.", fileType.getFileDescription());
   }
 
-  private static void upload(@Nonnull final ProgramState state,
-      @Nonnull final OrganisationParameters orgParams, @Nonnull final String metaKeyCsvList) {
+  private static void upload(
+      @Nonnull final ProgramState state,
+      @Nonnull final OrganisationParameters orgParams,
+      @Nonnull final String metaKeyCsvList) {
 
     final Map<PropKey, String> uploadParams = orgParams.getUploadParams();
 
@@ -471,19 +483,31 @@ public class MainProgram {
       state.setFatalErrorEncountered();
       return;
     }
+    assert usersFile != null;
+    assert groupsFile != null;
+    assert userRelationshipsFile != null;
+    assert userGroupsFile != null;
+    assert groupRolesFile != null;
+
+    // This uses the FileBody class to write out each file.  It's probably not UTF-8 compliant...
+    // See the monstrosity that is FileBody::writeTo to see how this works.
 
     final MultipartEntityBuilder entityBuilder = MultipartEntityBuilder
         .create()
         .setBoundary("------------------------boundary-" + UUID.randomUUID())
         .setCharset(Charset.forName("UTF-8"))
-        .addBinaryBody("csvFile_Users", usersFile)
-        .addBinaryBody("csvFile_UserGroup", userGroupsFile)
-        .addBinaryBody("csvFile_UserRelationships", userRelationshipsFile)
-        .addBinaryBody("csvFile_Groups", groupsFile)
-        .addBinaryBody("csvFile_GroupRole", groupRolesFile);
+        .addBinaryBody("csvFile_Users",
+            usersFile, CSV_CONTENT_TYPE, "Users.csv")
+        .addBinaryBody("csvFile_UserGroup",
+            userGroupsFile, CSV_CONTENT_TYPE, "UserGroups.csv")
+        .addBinaryBody("csvFile_UserRelationships",
+            userRelationshipsFile, CSV_CONTENT_TYPE, "UserRelationships.csv")
+        .addBinaryBody("csvFile_Groups",
+            groupsFile, CSV_CONTENT_TYPE, "Groups.csv")
+        .addBinaryBody("csvFile_GroupRole",
+            groupRolesFile, CSV_CONTENT_TYPE, "GroupRoles.csv");
     fields.forEach((paramName, value) ->
-        entityBuilder.addTextBody(paramName, value,
-            ContentType.create("text/plain", Charset.forName("UTF-8"))));
+        entityBuilder.addTextBody(paramName, value, PARAM_CONTENT_TYPE));
 
     final String url = uploadParams.get(PropKey.URL);
     if (url == null) {
@@ -511,13 +535,13 @@ public class MainProgram {
         .setRedirectsEnabled(true)
         .build();
 
-    StatusLine statusLine;
+    final StatusLine statusLine;
     try (
         CloseableHttpClient client = HttpClientBuilder.create()
             .setDefaultRequestConfig(config)
             .disableContentCompression()
             .build();
-        CloseableHttpResponse response = client.execute(post);
+        CloseableHttpResponse response = client.execute(post)
     ) {
       statusLine = response.getStatusLine();
     } catch (IOException e) {
@@ -531,8 +555,8 @@ public class MainProgram {
 
   @SafeVarargs
   @Contract(pure = true)
-  private static <T> boolean anyNull(T... objects) {
-    for (T o : objects) {
+  private static <T> boolean anyNull(@Nonnull final T... objects) {
+    for (@Nullable T o : objects) {
       if (o == null) {
         return true;
       }

@@ -36,20 +36,28 @@ import static com.skillsforge.accountfeeds.config.LogLevel.WARN;
  * @author aw1459
  * @date 27-May-2017
  */
-@SuppressWarnings("TypeMayBeWeakened")
+@SuppressWarnings({"TypeMayBeWeakened", "ClassWithTooManyFields"})
 public class ParsedFeedFiles {
 
+  @Nonnull
   private static final Charset UTF8 = Charset.forName("UTF-8");
+  @Nonnull
   private static final String[] USERS_HEADERS_V5 =
       {"UserID", "Username", "Email", "Title", "Forename", "Surname", "Disabled", "Archived"};
+  @Nonnull
   private static final String[] GROUPS_HEADERS_V5 =
       {"GroupAlias", "GroupName", "GroupDescription", "Delete"};
+  @Nonnull
   private static final String[] USER_GROUPS_HEADERS_V5 = {"UserID", "GroupAlias"};
+  @Nonnull
   private static final String[] USER_RELATIONSHIPS_HEADERS_V5 =
       {"UserIDLeft", "UserIDRight", "RoleAliasLeft", "RoleAliasRight", "Delete"};
+  @Nonnull
   private static final String[] GROUP_ROLES_HEADERS_V5 = {"GroupAlias", "RoleAlias"};
 
+  @Nonnull
   private static final Pattern RE_USERS_METAHEADER_VALID_V5 = Pattern.compile("^[a-zA-Z0-9-_.]+$");
+  @Nonnull
   private static final Pattern RE_USERS_METAHEADER_DISALLOWED_V5 =
       Pattern.compile("^(usernameChange.*)|(syncTimestamp.*)$");
 
@@ -73,8 +81,10 @@ public class ParsedFeedFiles {
   @Nonnull
   private String metadataKeyCsvString = "";
 
-  public ParsedFeedFiles(@Nonnull final ProgramState state,
+  public ParsedFeedFiles(
+      @Nonnull final ProgramState state,
       @Nonnull final OrganisationParameters orgParams) {
+
     this.state = state;
     this.orgParams = orgParams;
 
@@ -85,7 +95,8 @@ public class ParsedFeedFiles {
     readInFile(FileKey.INPUT_GROUP_ROLES, groupRoles);
   }
 
-  private void readInFile(@Nonnull final FileKey fileKey,
+  private void readInFile(
+      @Nonnull final FileKey fileKey,
       @Nonnull final Collection<List<String>> multiList) {
 
     final File file = state.getFile(fileKey);
@@ -146,8 +157,11 @@ public class ParsedFeedFiles {
     checkGenericLayout(groupRoles, GROUP_ROLES_HEADERS_V5, "GroupRoles");
   }
 
-  private void checkGenericLayout(@Nonnull final List<List<String>> multiList,
-      @Nonnull final String[] headers, @Nonnull final String fileType) {
+  private void checkGenericLayout(
+      @Nonnull final List<List<String>> multiList,
+      @Nonnull final String[] headers,
+      @Nonnull final String fileType) {
+
     if (multiList.isEmpty()) {
       state.log(INFO, "%s file: is blank.  No assessment of this file will take place.", fileType);
       return;
@@ -203,8 +217,11 @@ public class ParsedFeedFiles {
     state.log(INFO, "Completed checking Users file.");
   }
 
-  private void checkHeader(@Nonnull final List<String> headerLine,
-      @Nonnull final String[] headers, @Nonnull final String fileType, final boolean hasMetadata) {
+  private void checkHeader(
+      @Nonnull final List<String> headerLine,
+      @Nonnull final String[] headers,
+      @Nonnull final String fileType,
+      final boolean hasMetadata) {
 
     final int correctHeaderCount = headers.length;
     final int userProvidedHeaderCount = headerLine.size();
@@ -236,8 +253,12 @@ public class ParsedFeedFiles {
     }
   }
 
-  private void checkBody(@Nonnull final List<List<String>> multiList, final int headerCount,
+  @SuppressWarnings("MethodWithMultipleLoops")
+  private void checkBody(
+      @Nonnull final List<List<String>> multiList,
+      final int headerCount,
       @Nonnull final String fileType) {
+
     int lineNum = 0;
     for (final List<String> line : multiList) {
       lineNum++;
@@ -268,6 +289,7 @@ public class ParsedFeedFiles {
     }
   }
 
+  @Nonnull
   public Collection<InputUser> generateUserModels() {
     state.log(INFO, "Building InputUser objects:");
 
@@ -285,6 +307,7 @@ public class ParsedFeedFiles {
     return objects;
   }
 
+  @Nonnull
   public Collection<InputGroup> generateGroupModels() {
     state.log(INFO, "Building InputGroup objects:");
 
@@ -300,6 +323,7 @@ public class ParsedFeedFiles {
     return objects;
   }
 
+  @Nonnull
   public Collection<InputGroupRole> generateGroupRoleModels() {
     state.log(INFO, "Building InputGroupRole objects:");
 
@@ -315,6 +339,7 @@ public class ParsedFeedFiles {
     return objects;
   }
 
+  @Nonnull
   public Collection<InputUserGroup> generateUserGroupModels() {
     state.log(INFO, "Building InputUserGroup objects:");
 
@@ -330,6 +355,7 @@ public class ParsedFeedFiles {
     return objects;
   }
 
+  @Nonnull
   public Collection<InputUserRelationship> generateUserRelationshipModels() {
     state.log(INFO, "Building InputUserRelationship objects:");
 
@@ -345,6 +371,7 @@ public class ParsedFeedFiles {
     return objects;
   }
 
+  @Nonnull
   public String getMetadataKeyCsvString() throws ParamException {
     if (metadataKeyCsvString.isEmpty()) {
       throw new ParamException("Metadata Headers haven't been initialised yet.");

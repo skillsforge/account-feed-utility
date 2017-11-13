@@ -22,15 +22,14 @@ import static com.skillsforge.accountfeeds.config.LogLevel.WARN;
  * @author aw1459
  * @date 27-May-2017
  */
+@SuppressWarnings("ClassWithTooManyFields")
 public class InputUser {
-
   @SuppressWarnings("FieldNotUsedInToString")
   @Nonnull
   private final ProgramState state;
   @SuppressWarnings("FieldNotUsedInToString")
   @Nonnull
   private final OrganisationParameters orgParams;
-  @SuppressWarnings("FieldNotUsedInToString")
 
   @Nonnull
   private final Map<String, String> metaData = new HashMap<>();
@@ -51,10 +50,12 @@ public class InputUser {
   @Nullable
   private final String disabled;
 
-  public InputUser(@Nonnull final ProgramState state,
+  public InputUser(
+      @Nonnull final ProgramState state,
       @Nonnull final OrganisationParameters orgParams,
       @Nonnull final List<String> line,
       @Nonnull final List<String> metadataHeaders) {
+
     this.state = state;
     this.orgParams = orgParams;
 

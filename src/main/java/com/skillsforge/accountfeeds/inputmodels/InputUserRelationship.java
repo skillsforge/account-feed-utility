@@ -21,6 +21,7 @@ public class InputUserRelationship {
   @SuppressWarnings("FieldNotUsedInToString")
   @Nonnull
   private final ProgramState state;
+
   @Nullable
   private final String userIdLeft;
   @Nullable
@@ -32,8 +33,10 @@ public class InputUserRelationship {
   @Nullable
   private final String delete;
 
-  public InputUserRelationship(@Nonnull final ProgramState state,
+  public InputUserRelationship(
+      @Nonnull final ProgramState state,
       @Nonnull final List<String> line) {
+
     this.state = state;
 
     if (line.size() < 5) {
@@ -55,7 +58,9 @@ public class InputUserRelationship {
 
   @Nullable
   @Contract(pure = true)
-  public OutputUserRelationship validateAllFields(@Nonnull final Indexes indexes) {
+  public OutputUserRelationship validateAllFields(
+      @Nonnull final Indexes indexes) {
+
     final String oDelete =
         CommonMethods.validateTrueFalse(delete, state, this, "Delete");
     final String oUserIdLeft =
@@ -85,8 +90,10 @@ public class InputUserRelationship {
 
   @Nullable
   @Contract(pure = true, value = "null,_ -> null")
-  private String validateHolderRole(@Nullable final String oRoleAlias,
+  private String validateHolderRole(
+      @Nullable final String oRoleAlias,
       @Nonnull final Indexes indexes) {
+
     if ((oRoleAlias == null) || oRoleAlias.trim().isEmpty()) {
       state.log(ERROR, "The (left) role alias column is blank in %s - this must be filled with a "
                        + "valid relationship-role.", this.toString());

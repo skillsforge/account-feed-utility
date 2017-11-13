@@ -3,6 +3,7 @@ package com.skillsforge.accountfeeds.config;
 import com.skillsforge.accountfeeds.input.Patterns;
 
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -33,7 +34,14 @@ import static com.skillsforge.accountfeeds.config.LogLevel.WARN;
  * @author aw1459
  * @date 27-May-2017
  */
-@SuppressWarnings("TypeMayBeWeakened")
+@SuppressWarnings({
+    "TypeMayBeWeakened",
+    "ClassWithTooManyFields",
+    "MethodWithMultipleLoops",
+    "OverlyComplexMethod"
+    , "MethodWithMoreThanThreeNegations"
+    , "OverlyLongMethod"
+})
 public class OrganisationParameters {
   @Nonnull
   public static final String ENV_SF_TOKEN = "SF_TOKEN";
@@ -68,31 +76,20 @@ public class OrganisationParameters {
   private int targetVersionBetaLevel = 0;
   private long targetVersion = 5_009_012_000L;
   @Nonnull
-  private String organisation = "DEFAULT";
-  @Nonnull
   private String organisationName = "a Default SkillsForge Instance";
   @Nonnull
   private Patterns patterns = new Patterns(targetVersion);
 
-  @Nullable
-  private String uploadUrl = "Invalid URL";
-  @Nullable
-  private String uploadToken = "Invalid Token";
-  @Nullable
-  private String uploadOrgAlias = "org";
-  @Nullable
-  private String uploadFeedId = "csvfeed";
-  @Nullable
-  private String uploadEmailList = "";
+  public OrganisationParameters(
+      @Nonnull final ProgramState state) {
 
-  public OrganisationParameters(@Nonnull final ProgramState state) {
     final File stateFile = state.getFile(FileKey.STATE_FILE);
     if (stateFile == null) {
       groupRoles.addAll(defaultGroupRoles);
       relationshipRoles.addAll(defaultRelationshipRoles);
-      state.log(INFO, "Not using any organisation-specific information - targeting %s (%s) running "
+      state.log(INFO, "Not using any organisation-specific information - targeting %s running "
                       + "SkillsForge version %d.%d.%d.\n",
-          organisationName, organisation, targetVersionMajor, targetVersionMinor,
+          organisationName, targetVersionMajor, targetVersionMinor,
           targetVersionRevision);
       return;
     }
@@ -128,7 +125,6 @@ public class OrganisationParameters {
 
       patterns = new Patterns(targetVersion);
 
-      organisation = stateConfig.getString("organisation");
       organisationName = stateConfig.getString("organisationName");
 
       if (stateConfig.has("headcountLimits")) {
@@ -200,6 +196,7 @@ public class OrganisationParameters {
 
         final String tokenStateFile = uploadParamObject.optString("token", null);
         final String tokenCmdLine = state.getProperty(PropKey.TOKEN);
+        //noinspection CallToSystemGetenv
         final String tokenSysEnv = System.getenv(ENV_SF_TOKEN);
         uploadParams.put(PropKey.TOKEN,
             coalesce(tokenCmdLine, tokenStateFile, tokenSysEnv, "Invalid Token"));
@@ -272,7 +269,7 @@ public class OrganisationParameters {
                 )
             );
       }
-    } catch (IOException | JSONException e) {
+    } catch (@NotNull IOException | JSONException e) {
       state.log(ERROR, "Problem reading state file (%s): %s.", stateFile.getPath(),
           e.getLocalizedMessage());
       state.setFatalErrorEncountered();
@@ -280,16 +277,18 @@ public class OrganisationParameters {
     }
 
     state.log(INFO, "Using state file provided for: "
-                    + "%s (%s) targeting SkillsForge version %d.%d.%d-%d.\n",
-        organisationName, organisation, targetVersionMajor, targetVersionMinor,
+                    + "%s targeting SkillsForge version %d.%d.%d-%d.\n",
+        organisationName, targetVersionMajor, targetVersionMinor,
         targetVersionRevision, targetVersionBetaLevel);
   }
 
   @SafeVarargs
   @Nullable
   @Contract(pure = true)
-  private static <T> T coalesce(final T... objects) {
-    for (final T o : objects) {
+  private static <T> T coalesce(
+      @Nonnull final T... objects) {
+
+    for (@Nullable final T o : objects) {
       if (o != null) {
         return o;
       }
@@ -351,19 +350,15 @@ public class OrganisationParameters {
 
   @Nonnull
   @Contract(pure = true)
-  public String getOrganisation() {
-    return organisation;
-  }
-
-  @Nonnull
-  @Contract(pure = true)
   public String getOrganisationName() {
     return organisationName;
   }
 
   @Nullable
   @Contract(pure = true)
-  public Pattern getMetadataPattern(@Nonnull final String key) {
+  public Pattern getMetadataPattern(
+      @Nonnull final String key) {
+
     return metadataPatternMap.get(key.toLowerCase());
   }
 
@@ -372,6 +367,7 @@ public class OrganisationParameters {
     return patterns;
   }
 
+  @Nonnull
   public Map<PropKey, String> getUploadParams() {
     return Collections.unmodifiableMap(uploadParams);
   }

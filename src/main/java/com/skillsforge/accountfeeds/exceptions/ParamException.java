@@ -7,20 +7,9 @@ package com.skillsforge.accountfeeds.exceptions;
 @SuppressWarnings({"SerializableHasSerializationMethods", "DeserializableClassInSecureContext"})
 public class ParamException extends Exception {
 
-  private static final long serialVersionUID = -6795564220126911455L;
-
-  public ParamException() {
-  }
+  private static final long serialVersionUID = -5771123188104328456L;
 
   public ParamException(final String s) {
     super(s);
-  }
-
-  public ParamException(final String s, final Throwable throwable) {
-    super(s, throwable);
-  }
-
-  public ParamException(final Throwable throwable) {
-    super(throwable);
   }
 }
