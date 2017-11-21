@@ -139,7 +139,7 @@ public class Indexes {
       final String userId = user.getUserId();
       if (userId == null) {
         state.log(ERROR, "A user with no UserID was encountered: '%s'.", user.toString());
-      } else {
+      } else if (!userId.trim().isEmpty()) {
         if (usersByUserIdLowerCase.containsKey(userId.trim().toLowerCase())) {
           state.log(ERROR, "There is more than one user with the UserID '%s'.",
               userId.trim());
@@ -151,7 +151,7 @@ public class Indexes {
       final String username = user.getUsername();
       if (username == null) {
         state.log(ERROR, "A user with no Username was encountered: '%s'.", user.toString());
-      } else {
+      } else if (!username.trim().isEmpty()) {
         final String lowerCaseUsername = username.toLowerCase().trim();
         if (!lowerCaseUsername.equals(username.trim())) {
           state.log(WARN, "The Username '%s' will be lower-cased when uploaded.", username);
@@ -167,7 +167,7 @@ public class Indexes {
       if (email == null) {
         state.log(ERROR, "A user with no Email address was encountered: '%s'.",
             user.toString());
-      } else {
+      } else if (!email.trim().isEmpty()) {
         if (usersByEmail.containsKey(email)) {
           state.log(WARN, "There is more than one user with the email address '%s'.",
               email);
