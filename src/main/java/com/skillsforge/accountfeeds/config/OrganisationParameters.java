@@ -210,7 +210,12 @@ public class OrganisationParameters {
         uploadParams.put(PropKey.FEED_ID, coalesce(feedIdCmdLine, feedIdStateFile));
 
         final JSONArray emailStateFileArray = uploadParamObject.getJSONArray("emailRecipients");
-        final String emailStateFile = emailStateFileArray.join(",");
+        final int length = emailStateFileArray.length();
+        final String[] emailStateFileList = new String[length];
+        for (int i = 0; i < length; i++) {
+          emailStateFileList[i] = emailStateFileArray.getString(i);
+        }
+        final String emailStateFile = String.join(",", emailStateFileList);
         final String emailCmdLine = state.getProperty(PropKey.EMAIL_LIST);
         uploadParams.put(PropKey.EMAIL_LIST, coalesce(emailCmdLine, emailStateFile));
 
