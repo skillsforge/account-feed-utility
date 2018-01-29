@@ -54,6 +54,13 @@ public class InputUserRelationship {
     roleAliasLeft = CommonMethods.getFieldFromLine(line, 2);
     roleAliasRight = CommonMethods.getFieldFromLine(line, 3);
     delete = CommonMethods.getFieldFromLine(line, 4);
+
+    if (CommonMethods.containsNewlineOrDoubleQuote(
+        userIdLeft, userIdRight, roleAliasLeft, roleAliasRight, delete)) {
+      state.log(ERROR,
+          "A field on this UserRelationship CSV line (%s) contains either a double-quote or a "
+          + "newline character - these are not supported by the target version.", line.toString());
+    }
   }
 
   @Nullable

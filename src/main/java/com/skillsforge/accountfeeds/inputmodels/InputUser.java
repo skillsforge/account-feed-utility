@@ -84,6 +84,13 @@ public class InputUser {
         metaData.put(metadataHeaders.get(valNum), metaValues.get(valNum));
       }
     }
+
+    if (CommonMethods.containsNewlineOrDoubleQuote(
+        userId, username, email, title, forename, surname, archived, disabled)) {
+      state.log(ERROR,
+          "A field on this User CSV line (%s) contains either a double-quote or a "
+          + "newline character - these are not supported by the target version.", line.toString());
+    }
   }
 
   @Nullable

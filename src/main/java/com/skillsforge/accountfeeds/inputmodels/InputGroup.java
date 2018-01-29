@@ -57,6 +57,13 @@ public class InputGroup {
     groupDescription = CommonMethods.getFieldFromLine(line, 2);
     delete = CommonMethods.getFieldFromLine(line, 3);
 
+    if (CommonMethods.containsNewlineOrDoubleQuote(
+        groupAlias, groupName, groupDescription, delete)) {
+      state.log(ERROR,
+          "A field on this Group CSV line (%s) contains either a double-quote or a "
+          + "newline character - these are not supported by the target version.", line.toString());
+    }
+
     this.orgParams = orgParams;
   }
 
