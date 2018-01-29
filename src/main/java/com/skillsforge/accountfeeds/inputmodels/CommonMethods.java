@@ -35,6 +35,16 @@ public final class CommonMethods {
            : null;
   }
 
+  @Contract(pure = true)
+  static boolean containsNewlineOrDoubleQuote(@Nonnull final String... fields) {
+    for (String field : fields) {
+      if (field.contains("\n") || field.contains("\"")) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @Nullable
   @Contract(pure = true, value = "null,_,_,_ -> null")
   static String validateGroupAlias(

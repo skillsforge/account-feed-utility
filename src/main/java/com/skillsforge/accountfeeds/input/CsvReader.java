@@ -19,6 +19,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import static com.skillsforge.accountfeeds.config.LogLevel.ERROR;
+import static com.skillsforge.accountfeeds.config.LogLevel.INFO;
 import static com.skillsforge.accountfeeds.config.LogLevel.WARN;
 
 /**
@@ -143,7 +144,7 @@ public class CsvReader extends BufferedReader {
           }
           if (nextChar == '\n') {
             lineNum++;
-            state.log(WARN,
+            state.log(INFO,
                 "CSV (Line %d, Field %d): Quoted field contains newline - was this "
                 + "intentional?",
                 lineNum, fieldNum);

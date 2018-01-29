@@ -45,6 +45,13 @@ public class InputUserGroup {
 
     userId = CommonMethods.getFieldFromLine(line, 0);
     groupAlias = CommonMethods.getFieldFromLine(line, 1);
+
+    if (CommonMethods.containsNewlineOrDoubleQuote(
+        userId, groupAlias)) {
+      state.log(ERROR,
+          "A field on this UserGroup CSV line (%s) contains either a double-quote or a "
+          + "newline character - these are not supported by the target version.", line.toString());
+    }
   }
 
   @Nullable

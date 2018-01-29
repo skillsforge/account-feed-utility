@@ -44,6 +44,13 @@ public class InputGroupRole {
 
     groupAlias = CommonMethods.getFieldFromLine(line, 0);
     roleAlias = CommonMethods.getFieldFromLine(line, 1);
+
+    if (CommonMethods.containsNewlineOrDoubleQuote(
+        groupAlias, roleAlias)) {
+      state.log(ERROR,
+          "A field on this GroupRole CSV line (%s) contains either a double-quote or a "
+          + "newline character - these are not supported by the target version.", line.toString());
+    }
   }
 
   @Nullable
