@@ -88,16 +88,16 @@ public class Indexes {
       @Nonnull final ProgramState state,
       @Nonnull final Iterable<InputGroup> groups) {
 
-    state.log(INFO, "Building Group indexes:");
+    state.log(null, INFO, "Building Group indexes:");
 
     for (final InputGroup group : groups) {
       final String groupAlias = group.getGroupAlias();
       if (groupAlias == null) {
-        state.log(ERROR, "A group with no GroupAlias was encountered: '%s'.",
+        state.log("I.bgi.1", ERROR, "A group with no GroupAlias was encountered: '%s'.",
             group.toString());
       } else {
         if (groupsByAliasUpperCase.containsKey(groupAlias.trim().toUpperCase())) {
-          state.log(ERROR, "There is more than one group with the GroupAlias '%s'.",
+          state.log("I.bgi.2", ERROR, "There is more than one group with the GroupAlias '%s'.",
               groupAlias.trim());
         } else {
           groupsByAlias.put(groupAlias.trim(), group);
@@ -106,15 +106,15 @@ public class Indexes {
       }
       final String groupName = group.getGroupName();
       if (groupName == null) {
-        state.log(WARN, "A group with no GroupName was encountered: '%s'.",
+        state.log("I.bgi.3", WARN, "A group with no GroupName was encountered: '%s'.",
             group.toString());
       } else {
         if (groupsByName.containsKey(groupName.trim())) {
           if (orgParams.getTargetVersion() >= 5_010_000_006L) {
-            state.log(WARN, "There is more than one group with the GroupName '%s'.",
+            state.log("I.bgi.4", WARN, "There is more than one group with the GroupName '%s'.",
                 groupName.trim());
           } else {
-            state.log(ERROR,
+            state.log("I.bgi.5", ERROR,
                 "There is more than one group with the GroupName '%s'.  Invokes a bug fixed in "
                 + "5.10.0-BETA-6.",
                 groupName.trim());
@@ -125,7 +125,7 @@ public class Indexes {
       }
     }
 
-    state.log(INFO, "+ Built Group indexes (%d by GroupAlias, %d by GroupName)",
+    state.log(null, INFO, "+ Built Group indexes (%d by GroupAlias, %d by GroupName)",
         groupsByAlias.size(), groupsByName.size());
   }
 
@@ -133,15 +133,16 @@ public class Indexes {
       @Nonnull final ProgramState state,
       @Nonnull final Iterable<InputUser> users) {
 
-    state.log(INFO, "Building User indexes:");
+    state.log(null, INFO, "Building User indexes:");
 
     for (final InputUser user : users) {
       final String userId = user.getUserId();
       if (userId == null) {
-        state.log(ERROR, "A user with no UserID was encountered: '%s'.", user.toString());
+        state.log("I.bui.1", ERROR, "A user with no UserID was encountered: '%s'.",
+            user.toString());
       } else if (!userId.trim().isEmpty()) {
         if (usersByUserIdLowerCase.containsKey(userId.trim().toLowerCase())) {
-          state.log(ERROR, "There is more than one user with the UserID '%s'.",
+          state.log("I.bui.2", ERROR, "There is more than one user with the UserID '%s'.",
               userId.trim());
         } else {
           usersByUserIdLowerCase.put(userId.trim().toLowerCase(), user);
@@ -150,14 +151,16 @@ public class Indexes {
       }
       final String username = user.getUsername();
       if (username == null) {
-        state.log(ERROR, "A user with no Username was encountered: '%s'.", user.toString());
+        state.log("I.bui.3", ERROR, "A user with no Username was encountered: '%s'.",
+            user.toString());
       } else if (!username.trim().isEmpty()) {
         final String lowerCaseUsername = username.toLowerCase().trim();
         if (!lowerCaseUsername.equals(username.trim())) {
-          state.log(WARN, "The Username '%s' will be lower-cased when uploaded.", username);
+          state.log("I.bui.3", WARN, true, "The Username '%s' will be lower-cased when uploaded.",
+              username);
         }
         if (usersByUsername.containsKey(lowerCaseUsername)) {
-          state.log(ERROR, "There is more than one user with the username '%s'.",
+          state.log("I.bui.4", ERROR, "There is more than one user with the username '%s'.",
               lowerCaseUsername);
         } else {
           usersByUsername.put(lowerCaseUsername, user);
@@ -165,11 +168,11 @@ public class Indexes {
       }
       final String email = user.getEmail();
       if (email == null) {
-        state.log(ERROR, "A user with no Email address was encountered: '%s'.",
+        state.log("I.bui.5", ERROR, "A user with no Email address was encountered: '%s'.",
             user.toString());
       } else if (!email.trim().isEmpty()) {
         if (usersByEmail.containsKey(email)) {
-          state.log(WARN, "There is more than one user with the email address '%s'.",
+          state.log("I.bui.6", WARN, "There is more than one user with the email address '%s'.",
               email);
         } else {
           usersByEmail.put(email.trim(), user);
@@ -177,7 +180,7 @@ public class Indexes {
       }
     }
 
-    state.log(INFO, "+ Built User indexes (%d by UserId, %d by Username, %d by Email)",
+    state.log(null, INFO, "+ Built User indexes (%d by UserId, %d by Username, %d by Email)",
         usersByUserId.size(), usersByUsername.size(), usersByEmail.size());
   }
 

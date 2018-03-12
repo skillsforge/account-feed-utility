@@ -60,11 +60,12 @@ public class InputUser {
     this.orgParams = orgParams;
 
     if (line.size() < (metadataHeaders.size() + 8)) {
-      state.log(ERROR, "InputUser is incomplete as CSV line (%s) does not contain enough columns.",
+      state.log("IU.1", ERROR,
+          "InputUser is incomplete as CSV line does not contain enough columns: %s",
           line.toString());
     }
     if (line.size() > (metadataHeaders.size() + 8)) {
-      state.log(ERROR, "Users CSV line (%s) contains too many columns.", line.get(0));
+      state.log("IU.2", ERROR, "Users CSV line contains too many columns: %s", line.get(0));
     }
 
     userId = CommonMethods.getFieldFromLine(line, 0);
@@ -87,9 +88,10 @@ public class InputUser {
 
     if (CommonMethods.containsNewlineOrDoubleQuote(
         userId, username, email, title, forename, surname, archived, disabled)) {
-      state.log(ERROR,
-          "A field on this User CSV line (%s) contains either a double-quote or a "
-          + "newline character - these are not supported by the target version.", line.toString());
+      state.log("IU.3", ERROR,
+          "A field on this User CSV line contains either a double-quote or a "
+          + "newline character - these are not supported by the target version: %s",
+          line.toString());
     }
   }
 
@@ -138,7 +140,8 @@ public class InputUser {
     metaData.forEach((key, value) -> {
       final Pattern pattern = orgParams.getMetadataPattern(key);
       if ((pattern != null) && !pattern.matcher(value).matches()) {
-        state.log(WARN, "User '%s' has unexpected or badly formatted metadata: '%s' -> '%s'.",
+        state.log("IU.vaf.1", WARN,
+            "User '%s' has unexpected or badly formatted metadata: '%s' -> '%s'.",
             oUserId, key, value);
       }
     });

@@ -111,7 +111,8 @@ public class ParsedFeedFiles {
 
         multiList.addAll(csvReader.readFile());
       } catch (IOException e) {
-        state.log(ERROR, "Problem encountered whilst accessing file: %s: %s.", file.getPath(),
+        state.log("PFF.rif.1", ERROR, "Problem encountered whilst accessing file: %s: %s.",
+            file.getPath(),
             e.getLocalizedMessage());
         state.setFatalErrorEncountered();
       }
@@ -149,7 +150,7 @@ public class ParsedFeedFiles {
   }
 
   public void checkLayout() {
-    state.log(INFO, "Checking syntax and layout of individual files:\n");
+    state.log(null, INFO, "Checking syntax and layout of individual files:\n");
 
     checkUsersLayout();
     checkGenericLayout(groups, GROUPS_HEADERS_V5, "Groups");
@@ -164,7 +165,8 @@ public class ParsedFeedFiles {
       @Nonnull final String fileType) {
 
     if (multiList.isEmpty()) {
-      state.log(INFO, "%s file: is blank.  No assessment of this file will take place.", fileType);
+      state.log(null, INFO, "%s file: is blank.  No assessment of this file will take place.",
+          fileType);
       return;
     }
 
@@ -173,12 +175,12 @@ public class ParsedFeedFiles {
     checkHeader(headerLine, headers, fileType, false);
     checkBody(multiList, headerLine.size(), fileType);
 
-    state.log(INFO, "Completed checking %s file.", fileType);
+    state.log(null, INFO, "Completed checking %s file.", fileType);
   }
 
   private void checkUsersLayout() {
     if (users.isEmpty()) {
-      state.log(INFO, "Users file: is blank.  No assessment of this file will take place.");
+      state.log(null, INFO, "Users file: is blank.  No assessment of this file will take place.");
       return;
     }
 
@@ -188,34 +190,38 @@ public class ParsedFeedFiles {
     // There must be at least one metadata column, due to a bug in the sync servlet.
     final int headerCount = header.size();
     if (headerCount < (USERS_HEADERS_V5.length + 1)) {
-      state.log(ERROR, "Users file: has too few columns - expected eight standard columns"
-                       + " and at least one metadata column.");
+      state.log("PFF.cul.1", ERROR,
+          "Users file: has too few columns - expected eight standard columns"
+          + " and at least one metadata column.");
     }
 
     final List<String> metadataHeaders = header.subList(8, header.size());
     this.metadataKeyCsvString = String.join(",", metadataHeaders);
-    state.log(INFO, "Users file: Metadata columns are: %s.", metadataHeaders.toString());
+    state.log(null, INFO, "Users file: Metadata columns are: %s.", metadataHeaders.toString());
 
     final Set<String> metadataHeadersSet = new HashSet<>(metadataHeaders);
     if (metadataHeaders.size() != metadataHeadersSet.size()) {
-      state.log(WARN, "Users file: Some metadata columns have duplicate names - which column is"
-                      + " actually used is not determinate.");
+      state.log("PFF.cul.2", WARN,
+          "Users file: Some metadata columns have duplicate names - which column is"
+          + " actually used is not determinate.");
     }
 
     for (final String headerName : metadataHeaders) {
       if (!RE_USERS_METAHEADER_VALID_V5.matcher(headerName).matches()) {
-        state.log(WARN, "Users file: Metadata column name '%s' contains invalid characters.",
+        state.log("PFF.cul.3", WARN,
+            "Users file: Metadata column name '%s' contains invalid characters.",
             headerName);
       }
       if (RE_USERS_METAHEADER_DISALLOWED_V5.matcher(headerName).matches()) {
-        state.log(WARN, "Users file: Metadata column name '%s' contains a reserved word.",
+        state.log("PFF.cul.4", WARN,
+            "Users file: Metadata column name '%s' contains a reserved word.",
             headerName);
       }
     }
 
     checkBody(users, headerCount, "Users");
 
-    state.log(INFO, "Completed checking Users file.");
+    state.log(null, INFO, "Completed checking Users file.");
   }
 
   private void checkHeader(
@@ -228,13 +234,14 @@ public class ParsedFeedFiles {
     final int userProvidedHeaderCount = headerLine.size();
 
     if (userProvidedHeaderCount < correctHeaderCount) {
-      state.log(ERROR, "%s file: This file has too few columns: expected " +
-                       (hasMetadata ? "at least " : "") + "%d but found %d.",
+      state.log("PFF.ch.1", ERROR, "%s file: This file has too few columns: expected " +
+                                   (hasMetadata ? "at least " : "") + "%d but found %d.",
           fileType, correctHeaderCount, userProvidedHeaderCount);
       return;
     }
     if (!hasMetadata && (userProvidedHeaderCount > correctHeaderCount)) {
-      state.log(ERROR, "%s file: This file has too many columns: expected %d but found %d.",
+      state.log("PFF.ch.2", ERROR,
+          "%s file: This file has too many columns: expected %d but found %d.",
           fileType, correctHeaderCount, userProvidedHeaderCount);
       return;
     }
@@ -245,12 +252,14 @@ public class ParsedFeedFiles {
         continue;
       }
       if (headers[i].equalsIgnoreCase(headerName)) {
-        state.log(ERROR, "%s file: The column name '%s' is case-sensitive - it should be '%s'.",
+        state.log("PFF.ch.3", ERROR,
+            "%s file: The column name '%s' is case-sensitive - it should be '%s'.",
             fileType, headerName, headers[i]);
         continue;
       }
-      state.log(ERROR, "%s file: The column name '%s' should not appear in the position it does - "
-                       + "'%s' should appear here instead.", fileType, headerName, headers[i]);
+      state.log("PFF.ch.4", ERROR,
+          "%s file: The column name '%s' should not appear in the position it does - "
+          + "'%s' should appear here instead.", fileType, headerName, headers[i]);
     }
   }
 
@@ -268,23 +277,25 @@ public class ParsedFeedFiles {
       }
       if (line.isEmpty()) {
         if (state.getProgramMode() != ProgramMode.LINT) {
-          state.log(WARN, "%s file: Line %d is blank.", fileType, lineNum);
+          state.log("PFF.cb.1", WARN, "%s file: Line %d is blank.", fileType, lineNum);
         }
         continue;
       }
       if (line.size() != headerCount) {
-        state.log(ERROR, "%s file: Line %d (%s) has the wrong number of columns - expected %d, "
-                         + "but found %d.",
-            fileType, lineNum, line.get(0), headerCount, line.size());
+        state.log("PFF.cb.2", ERROR,
+            "%s file: Line %d has the wrong number of columns - expected %d, "
+            + "but found %d: %s",
+            fileType, lineNum, headerCount, line.size(), line.get(0));
       }
 
       int colNum = 0;
       for (final String column : line) {
         colNum++;
         if (!column.equals(column.trim())) {
-          state.log(WARN, "%s file: Line %d (%s) Column %d (%s) begins or ends with whitespace - "
-                          + "this will be trimmed when uploaded.",
-              fileType, lineNum, line.get(0), colNum, column);
+          state.log("PFF.cb.3", WARN,
+              "%s file: Line %d Column %d (%s) begins or ends with whitespace - "
+              + "this will be trimmed when uploaded: %s",
+              fileType, lineNum, colNum, column, line.get(0));
         }
       }
     }
@@ -292,7 +303,7 @@ public class ParsedFeedFiles {
 
   @Nonnull
   public Collection<InputUser> generateUserModels() {
-    state.log(INFO, "Building InputUser objects:");
+    state.log(null, INFO, "Building InputUser objects:");
 
     final Collection<InputUser> objects = new HashSet<>();
     final List<String> headerLine = users.iterator().next();
@@ -304,13 +315,13 @@ public class ParsedFeedFiles {
       }
     }
 
-    state.log(INFO, "+ Built %d InputUser object(s).", objects.size());
+    state.log(null, INFO, "+ Built %d InputUser object(s).", objects.size());
     return objects;
   }
 
   @Nonnull
   public Collection<InputGroup> generateGroupModels() {
-    state.log(INFO, "Building InputGroup objects:");
+    state.log(null, INFO, "Building InputGroup objects:");
 
     final Collection<InputGroup> objects = new HashSet<>();
 
@@ -320,13 +331,13 @@ public class ParsedFeedFiles {
       }
     }
 
-    state.log(INFO, "+ Built %d InputGroup object(s).", objects.size());
+    state.log(null, INFO, "+ Built %d InputGroup object(s).", objects.size());
     return objects;
   }
 
   @Nonnull
   public Collection<InputGroupRole> generateGroupRoleModels() {
-    state.log(INFO, "Building InputGroupRole objects:");
+    state.log(null, INFO, "Building InputGroupRole objects:");
 
     final Collection<InputGroupRole> objects = new HashSet<>();
 
@@ -336,13 +347,13 @@ public class ParsedFeedFiles {
       }
     }
 
-    state.log(INFO, "+ Built %d InputGroupRole object(s).", objects.size());
+    state.log(null, INFO, "+ Built %d InputGroupRole object(s).", objects.size());
     return objects;
   }
 
   @Nonnull
   public Collection<InputUserGroup> generateUserGroupModels() {
-    state.log(INFO, "Building InputUserGroup objects:");
+    state.log(null, INFO, "Building InputUserGroup objects:");
 
     final Collection<InputUserGroup> objects = new HashSet<>();
 
@@ -352,13 +363,13 @@ public class ParsedFeedFiles {
       }
     }
 
-    state.log(INFO, "+ Built %d InputUserGroup object(s).", objects.size());
+    state.log(null, INFO, "+ Built %d InputUserGroup object(s).", objects.size());
     return objects;
   }
 
   @Nonnull
   public Collection<InputUserRelationship> generateUserRelationshipModels() {
-    state.log(INFO, "Building InputUserRelationship objects:");
+    state.log(null, INFO, "Building InputUserRelationship objects:");
 
     final Collection<InputUserRelationship> objects = new HashSet<>();
 
@@ -368,7 +379,7 @@ public class ParsedFeedFiles {
       }
     }
 
-    state.log(INFO, "+ Built %d InputUserRelationship object(s).", objects.size());
+    state.log(null, INFO, "+ Built %d InputUserRelationship object(s).", objects.size());
     return objects;
   }
 

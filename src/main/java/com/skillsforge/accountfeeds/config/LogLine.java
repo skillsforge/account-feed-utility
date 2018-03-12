@@ -5,6 +5,7 @@ import org.jetbrains.annotations.Contract;
 import java.io.PrintStream;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * @author aw1459
@@ -12,49 +13,58 @@ import javax.annotation.Nonnull;
  */
 @SuppressWarnings("BooleanParameter")
 public class LogLine {
+  @Nullable
+  private final String errorCode;
   @Nonnull
   private final LogLevel level;
-
   @Nonnull
   private final String errorString;
 
   private final boolean lintable;
 
   public LogLine(
+      @Nullable final String code,
       @Nonnull final LogLevel lvl,
       @Nonnull final String str) {
 
+    errorCode = code;
     errorString = str;
     level = lvl;
     lintable = false;
   }
 
   public LogLine(
+      @Nullable final String code,
       @Nonnull final LogLevel lvl,
       final boolean lintable,
       @Nonnull final String str) {
 
+    errorCode = code;
     errorString = str;
     level = lvl;
     this.lintable = lintable;
   }
 
   public LogLine(
+      @Nullable final String code,
       @Nonnull final LogLevel lvl,
       @Nonnull final String fmt,
       @Nonnull final Object... args) {
 
+    errorCode = code;
     errorString = String.format(fmt, args);
     level = lvl;
     this.lintable = false;
   }
 
   public LogLine(
+      @Nullable final String code,
       @Nonnull final LogLevel lvl,
       final boolean lintable,
       @Nonnull final String fmt,
       @Nonnull final Object... args) {
 
+    errorCode = code;
     errorString = String.format(fmt, args);
     level = lvl;
     this.lintable = lintable;
@@ -62,7 +72,11 @@ public class LogLine {
 
   public void outputLogLine(@Nonnull final PrintStream stream) {
     //noinspection resource
-    stream.printf("[%s%s] %s\n", level.name(), lintable ? "-LINTABLE" : "", errorString);
+    stream.printf("[%s%s%s] %s\n",
+        (errorCode == null) ? "" : (errorCode + ':'),
+        level.name(),
+        lintable ? "-LINTABLE" : "",
+        errorString);
   }
 
   @Contract(pure = true)

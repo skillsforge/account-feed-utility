@@ -40,12 +40,12 @@ public class InputUserRelationship {
     this.state = state;
 
     if (line.size() < 5) {
-      state.log(ERROR, "InputUserRelationship is incomplete as CSV line (%s) does not contain "
-                       + "enough columns.",
+      state.log("IUR.1", ERROR, "InputUserRelationship is incomplete as CSV line does not contain "
+                                + "enough columns: %s",
           line.toString());
     }
     if (line.size() > 5) {
-      state.log(ERROR, "InputUserRelationship CSV line (%s) contains too many columns.",
+      state.log("IUR.2", ERROR, "InputUserRelationship CSV line contains too many columns: %s",
           line.toString());
     }
 
@@ -57,9 +57,10 @@ public class InputUserRelationship {
 
     if (CommonMethods.containsNewlineOrDoubleQuote(
         userIdLeft, userIdRight, roleAliasLeft, roleAliasRight, delete)) {
-      state.log(ERROR,
-          "A field on this UserRelationship CSV line (%s) contains either a double-quote or a "
-          + "newline character - these are not supported by the target version.", line.toString());
+      state.log("IUR.3", ERROR,
+          "A field on this UserRelationship CSV line contains either a double-quote or a "
+          + "newline character - these are not supported by the target version:  %s",
+          line.toString());
     }
   }
 
@@ -84,9 +85,9 @@ public class InputUserRelationship {
     }
 
     if (oUserIdLeft.equalsIgnoreCase(oUserIdRight)) {
-      state.log(
+      state.log("IUR.vaf.1",
           ERROR, "The holder/left and subject/right UserID columns held the same value "
-                 + "in %s - you cannot hold a relationship over yourself.\n",
+                 + "- you cannot hold a relationship over yourself: %s\n",
           this.toString());
       return null;
     }
@@ -102,20 +103,22 @@ public class InputUserRelationship {
       @Nonnull final Indexes indexes) {
 
     if ((oRoleAlias == null) || oRoleAlias.trim().isEmpty()) {
-      state.log(ERROR, "The (left) role alias column is blank in %s - this must be filled with a "
-                       + "valid relationship-role.", this.toString());
+      state.log("IUR.vhr.1", ERROR,
+          "The (left) role alias column is blank - this must be filled with a "
+          + "valid relationship-role: %s", this.toString());
       return null;
     }
     if (!indexes.rolesForRelationshipsContainsIgnoreCase(oRoleAlias)) {
-      state.log(ERROR, "The (left) role alias column (%s) in %s is not a valid relationship-role.",
+      state.log("IUR.vhr.2", ERROR,
+          "The (left) role alias column (%s) is not a valid relationship-role: %s",
           oRoleAlias, this.toString());
       return null;
     }
     if (indexes.rolesForRelationshipsHasMismatchedCase(oRoleAlias)) {
-      state.log(ERROR, true,
-          "The left role alias column (%s) in %s is different in case from the"
+      state.log("IUR.vhr.3", ERROR, true,
+          "The left role alias column (%s) is different in case from the"
           + " defined relationship-role.  Will attempt to proceed with the defined role "
-          + "spelling.", oRoleAlias, this.toString());
+          + "spelling: %s", oRoleAlias, this.toString());
       return indexes.correctRelationshipRoleCase(oRoleAlias);
     }
     return oRoleAlias;

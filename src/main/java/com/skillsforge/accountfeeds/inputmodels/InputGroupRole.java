@@ -33,12 +33,11 @@ public class InputGroupRole {
     this.state = state;
 
     if (line.size() < 2) {
-      state.log(ERROR, "InputGroupRole is incomplete as CSV line (%s) does not contain enough "
-                       + "columns.",
-          line.toString());
+      state.log("IGR.1", ERROR, "InputGroupRole is incomplete as CSV line does not contain enough "
+                                + "columns: %s", line.toString());
     }
     if (line.size() > 2) {
-      state.log(ERROR, "InputGroupRole CSV line (%s) contains too many columns.",
+      state.log("IGR.2", ERROR, "InputGroupRole CSV line contains too many columns: %s",
           line.toString());
     }
 
@@ -47,9 +46,10 @@ public class InputGroupRole {
 
     if (CommonMethods.containsNewlineOrDoubleQuote(
         groupAlias, roleAlias)) {
-      state.log(ERROR,
-          "A field on this GroupRole CSV line (%s) contains either a double-quote or a "
-          + "newline character - these are not supported by the target version.", line.toString());
+      state.log("IGR.3", ERROR,
+          "A field on this GroupRole CSV line contains either a double-quote or a "
+          + "newline character - these are not supported by the target version: %s",
+          line.toString());
     }
   }
 
@@ -75,19 +75,19 @@ public class InputGroupRole {
       @Nonnull final Indexes indexes) {
 
     if (oRoleAlias == null) {
-      state.log(ERROR, "The role alias column is blank in %s - this must be filled with a "
-                       + "valid group-role.", this.toString());
+      state.log("IGR.vgr.1", ERROR, "The role alias column is blank - this must be filled with a "
+                                    + "valid group-role: %s", this.toString());
       return null;
     }
     if (!indexes.rolesForGroupsContainsIgnoreCase(oRoleAlias)) {
-      state.log(ERROR, "The role alias column (%s) in %s is not a valid group-role.",
+      state.log("IGR.vgr.2", ERROR, "The role alias column (%s) is not a valid group-role: %s",
           oRoleAlias, this.toString());
       return null;
     }
     if (indexes.rolesForGroupsHasMismatchedCase(oRoleAlias)) {
-      state.log(ERROR, "The role alias column (%s) in %s is different in case from the "
-                       + "defined group-role.  Will attempt to proceed with the defined role "
-                       + "spelling.",
+      state.log("IGR.vgr.3", ERROR, "The role alias column (%s) is different in case from the "
+                                    + "defined group-role.  Will attempt to proceed with the "
+                                    + "defined role spelling: %s",
           oRoleAlias, this.toString());
       return indexes.correctGroupRoleCase(oRoleAlias);
     }

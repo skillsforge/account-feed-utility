@@ -54,26 +54,26 @@ public final class CommonMethods {
       @Nonnull final Object inputObject) {
 
     if ((oGroupAlias == null) || oGroupAlias.trim().isEmpty()) {
-      state.log(
-          ERROR, "The GroupAlias column is blank in %s - must be filled with a GroupAlias.",
+      state.log("CM.vga.1",
+          ERROR, "The GroupAlias column is blank - it must be filled with a GroupAlias: %s",
           inputObject.toString());
       return null;
     }
     if (!oGroupAlias.trim().equals(oGroupAlias)) {
-      state.log(ERROR, true,
-          "[WARNING-LINTABLE] The GroupAlias in %s will be trimmed of whitespace when "
-          + "uploaded.", inputObject.toString());
+      state.log("CM.vga.2", ERROR, true,
+          "[WARNING-LINTABLE] The GroupAlias will be trimmed of whitespace when "
+          + "uploaded: %s", inputObject.toString());
     }
     final InputGroup group = indexes.getGroupByAliasIgnoreCase(oGroupAlias);
     if (group == null) {
-      state.log(ERROR, "The GroupAlias (%s) in %s does not exist in the Groups file.",
+      state.log("CM.vga.3", ERROR, "The GroupAlias (%s) does not exist in the Groups file: %s",
           oGroupAlias, inputObject.toString());
       return null;
     }
     if (indexes.groupAliasHasMismatchedCase(oGroupAlias)) {
-      state.log(ERROR, true,
-          "[ERROR-LINTABLE] The GroupAlias (%s) in %s is different in case to its "
-          + "definition in the Groups file.  Will proceed with spelling from Groups file.",
+      state.log("CM.vga.4", ERROR, true,
+          "[ERROR-LINTABLE] The GroupAlias (%s) is different in case to its "
+          + "definition in the Groups file: %s.  Will proceed with spelling from Groups file.",
           oGroupAlias, inputObject.toString());
       return group.getGroupAlias();
     }
@@ -90,26 +90,26 @@ public final class CommonMethods {
       @Nonnull final String desc) {
 
     if ((oUserId == null) || oUserId.trim().isEmpty()) {
-      state.log(
-          ERROR, "The %sUserID column is blank in %s - both must be filled with a UserID.",
+      state.log("CM.vui.1",
+          ERROR, "The %sUserID column is blank - it must contain a UserID: %s",
           desc, inputObject.toString());
       return null;
     }
     if (!oUserId.trim().equals(oUserId)) {
-      state.log(ERROR, true,
-          "[WARNING-LINTABLE] The %sUserID in %s will be trimmed of whitespace when uploaded"
+      state.log("CM.vui.2", WARN, true,
+          "The %sUserID will be trimmed of whitespace when uploaded: %s"
           + ".\n", desc, inputObject.toString());
     }
     final InputUser user = indexes.getUserByUserIdIgnoreCase(oUserId);
     if (user == null) {
-      state.log(ERROR, "The %sUserID (%s) in %s does not exist in the Users file.",
+      state.log("CM.vui.3", ERROR, "The %sUserID (%s) does not exist in the Users file: %s",
           desc, oUserId, inputObject.toString());
       return null;
     }
     if (indexes.userIdHasMismatchedCase(oUserId)) {
-      state.log(ERROR, true,
-          "[ERROR-LINTABLE] The %sUserID (%s) in %s is different in case to its "
-          + "definition in the Users file.  Will proceed with spelling from Users file.",
+      state.log("CM.vui.4", ERROR, true,
+          "The %sUserID (%s) is different in case to its "
+          + "definition in the Users file: %s.  Will proceed with spelling from Users file.",
           desc, oUserId, inputObject.toString());
       return user.getUserId();
     }
@@ -125,15 +125,15 @@ public final class CommonMethods {
       @Nonnull final String name) {
 
     if ((field == null) || field.trim().isEmpty()) {
-      state.log(ERROR, true,
-          "[ERROR-LINTABLE] '%s' not specified in %s - must be true or false.",
+      state.log("CM.vtf.1", ERROR, true,
+          "'%s' not specified - must be true or false: %s",
           name, inputObject.toString());
       return "false"; // Default when not specified
     }
     if (!"true".equalsIgnoreCase(field) && !"false".equalsIgnoreCase(field)) {
-      state.log(ERROR, true,
-          "[ERROR-LINTABLE] '%s' invalid in %s - must be true or false.  Will "
-          + "proceed as if false.", name, inputObject.toString());
+      state.log("CM.vtf.1", ERROR, true,
+          "'%s' invalid - must be true or false.  Will "
+          + "proceed as if false: %s", name, inputObject.toString());
       return "false"; // Default if invalid
     } else {
       return "true".equalsIgnoreCase(field) ? "true" : "false";
@@ -150,18 +150,18 @@ public final class CommonMethods {
       @Nonnull final Object inputObject) {
 
     if ((field == null) || field.trim().isEmpty()) {
-      state.log(ERROR, "The %s in %s is blank.", name, inputObject.toString());
+      state.log("CM.vm.1", ERROR, "%s is blank: %s", name, inputObject.toString());
       return null;
     }
     if (!matcher.apply(field)) {
-      state.log(ERROR, "The %s (%s) in %s has invalid characters or is badly formatted.",
+      state.log("CM.vm.2", ERROR, "%s (%s) has invalid characters or is badly formatted: %s",
           name, field, inputObject.toString());
       return null;
     }
     if (!field.trim().equals(field)) {
-      state.log(WARN, true,
-          "[WARNING-LINTABLE] The %s (%s) in %s is surrounded by whitespace which will be"
-          + " trimmed when uploaded.", name, field, inputObject.toString());
+      state.log("CM.vm.3", WARN, true,
+          "%s (%s) is surrounded by whitespace which will be"
+          + " trimmed when uploaded: %s", name, field, inputObject.toString());
     }
     return field.trim();
   }
@@ -178,24 +178,24 @@ public final class CommonMethods {
 
     if ((field == null) || field.trim().isEmpty()) {
       if (warnIfMissing) {
-        state.log(WARN, "The %s in %s is blank.", name, inputObject.toString());
+        state.log("CM.vnm.1", WARN, "%s is blank: %s.", name, inputObject.toString());
       }
       return "";
     }
     if (!matcher.apply(field)) {
-      state.log(WARN, true,
-          "[WARNING-LINTABLE] The %s (%s) in %s has invalid characters or is badly formatted."
+      state.log("CM.vnm.2", WARN, true,
+          "%s (%s) has invalid characters or is badly formatted: %s"
           + "  Will proceed using a blank %s.",
           name, field, inputObject.toString(), name);
       if (warnIfMissing) {
-        state.log(WARN, "The %s in %s has been made blank.", name, inputObject.toString());
+        state.log("CM.vnm.3", WARN, "%s has been made blank: %s", name, inputObject.toString());
       }
       return "";
     }
     if (!field.trim().equals(field)) {
-      state.log(WARN, true,
-          "[WARNING-LINTABLE] The %s (%s) in %s is surrounded by whitespace which will be"
-          + " trimmed when uploaded.", name, field, inputObject.toString());
+      state.log("CM.vnm.4", WARN, true,
+          "%s (%s) is surrounded by whitespace which will be"
+          + " trimmed when uploaded: %s.", name, field, inputObject.toString());
     }
     return field.trim();
   }

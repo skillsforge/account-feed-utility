@@ -70,7 +70,7 @@ public class OutputGroup {
       @Nonnull final OutputGroupRole groupRole) {
 
     if (roleNames.contains(groupRole.getRoleName())) {
-      state.log(WARN, "GroupRole mapping of '%s' -> '%s' is specified more than once.",
+      state.log("OG.ar.1", WARN, "GroupRole mapping is specified more than once: '%s' -> '%s'",
           groupAlias, groupRole.getRoleName());
       return;
     }

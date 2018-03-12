@@ -149,9 +149,10 @@ public class ProgramState {
       programMode = ProgramMode.valueOf(programArgs[0].trim().toUpperCase());
     } catch (IllegalArgumentException ignored) {
       outputLogStream = System.err;
-      log(ERROR, "%s is not a valid mode.\n\n"
-                 + "Run the following command for information on how to use this utility.\n"
-                 + "  java -jar account-feed-utility-<version>.jar help\n",
+      log("PS.1", ERROR, "%s is not a valid mode.\n\n"
+                         + "Run the following command for information on how to use this utility"
+                         + ".\n"
+                         + "  java -jar account-feed-utility-<version>.jar help\n",
           programArgs[0]);
       setFatalErrorEncountered();
       return;
@@ -187,9 +188,10 @@ public class ProgramState {
       args = parser.parse(optionsForMode, remainingArgs);
     } catch (ParseException e) {
       outputLogStream = System.err;
-      log(ERROR, "Processing arguments:\n  %s\n\n"
-                 + "Run the following command for information on how to use this utility.\n"
-                 + "  java -jar account-feed-utility-<version>.jar help\n",
+      log("PS.2", ERROR, "Processing arguments:\n  %s\n\n"
+                         + "Run the following command for information on how to use this utility"
+                         + ".\n"
+                         + "  java -jar account-feed-utility-<version>.jar help\n",
           e.getLocalizedMessage());
       setFatalErrorEncountered();
       return;
@@ -218,12 +220,12 @@ public class ProgramState {
       outputStream = (outputLogFile == null) ? System.out : new PrintStream(outputLogFile, "UTF-8");
     } catch (FileNotFoundException e) {
       outputLogStream = System.err;
-      log(ERROR, "Could not open output log file:\n  %s\n", e.getLocalizedMessage());
+      log("PS.3", ERROR, "Could not open output log file:\n  %s\n", e.getLocalizedMessage());
       setFatalErrorEncountered();
       return;
     } catch (UnsupportedEncodingException e) {
       outputLogStream = System.err;
-      log(ERROR, "Could not set UTF-8 encoding on output log file:\n  %s\n",
+      log("PS.4", ERROR, "Could not set UTF-8 encoding on output log file:\n  %s\n",
           e.getLocalizedMessage());
       setFatalErrorEncountered();
       return;
@@ -259,7 +261,7 @@ public class ProgramState {
         file.createNewFile();
       } catch (IOException ioe) {
 
-        log(ERROR, "Could not create: %s (%s%s): %s.\n",
+        log("PS.ofwac.1", ERROR, "Could not create: %s (%s%s): %s.\n",
             fileKey.getFilePathProp().getFileDescription(),
             (parentDir == null) ? "" : (parentDir + '/'),
             filename,
@@ -270,7 +272,7 @@ public class ProgramState {
     }
 
     if (!hasAccess(fileKey.getAccessType(), file)) {
-      log(ERROR, "Could not %s: %s (%s%s).\n",
+      log("PS.ofwac.2", ERROR, "Could not %s: %s (%s%s).\n",
           fileKey.getAccessType(),
           fileKey.getFilePathProp().getFileDescription(),
           (parentDir == null) ? "" : (parentDir + '/'),
@@ -357,19 +359,21 @@ public class ProgramState {
   }
 
   public final void log(
+      @Nullable final String code,
       @Nonnull final LogLevel lvl,
       @Nonnull final String fmt,
       final Object... args) {
 
-    allLogLines.add(new LogLine(lvl, fmt, args));
+    allLogLines.add(new LogLine(code, lvl, fmt, args));
   }
 
   public final void licenceLog(
+      @Nullable final String code,
       @Nonnull final LogLevel lvl,
       @Nonnull final String fmt,
       final Object... args) {
 
-    licenceLogLines.add(new LogLine(lvl, fmt, args));
+    licenceLogLines.add(new LogLine(code, lvl, fmt, args));
   }
 
   @Nullable
@@ -400,19 +404,21 @@ public class ProgramState {
   }
 
   public final void log(
+      @Nullable final String code,
       @Nonnull final LogLevel lvl,
       @Nonnull final String str) {
 
-    allLogLines.add(new LogLine(lvl, str));
+    allLogLines.add(new LogLine(code, lvl, str));
   }
 
   public final void log(
+      @Nullable final String code,
       @Nonnull final LogLevel lvl,
       final boolean lintable,
       @Nonnull final String fmt,
       final Object... args) {
 
-    allLogLines.add(new LogLine(lvl, lintable, fmt, args));
+    allLogLines.add(new LogLine(code, lvl, lintable, fmt, args));
   }
 
   @SuppressWarnings("resource")
@@ -424,14 +430,14 @@ public class ProgramState {
     );
 
     if (!licenceLogLines.isEmpty()) {
-      outputLogStream.printf("Licencing Information:\n"
-                             + "======================\n");
+      outputLogStream.print("Licencing Information:\n"
+                            + "======================\n");
       licenceLogLines.forEach(logLine -> logLine.outputLogLine(outputLogStream));
     }
 
     if (!allLogLines.isEmpty()) {
-      outputLogStream.printf("\nAccount Feed Utility Output:\n"
-                             + "============================\n");
+      outputLogStream.print("\nAccount Feed Utility Output:\n"
+                            + "============================\n");
       allLogLines.forEach(logLine -> logLine.outputLogLine(outputLogStream));
     }
   }

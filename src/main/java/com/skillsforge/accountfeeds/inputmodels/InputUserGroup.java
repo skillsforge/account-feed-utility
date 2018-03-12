@@ -34,12 +34,12 @@ public class InputUserGroup {
     this.state = state;
 
     if (line.size() < 2) {
-      state.log(ERROR, "InputUserGroup is incomplete as CSV line (%s) does not contain enough "
-                       + "columns.",
+      state.log("IUG.1", ERROR, "InputUserGroup is incomplete as CSV line does not contain enough "
+                                + "columns: %s",
           line.toString());
     }
     if (line.size() > 2) {
-      state.log(ERROR, "InputUserGroup CSV line (%s) contains too many columns.",
+      state.log("IUG.2", ERROR, "InputUserGroup CSV line contains too many columns: %s",
           line.toString());
     }
 
@@ -48,9 +48,10 @@ public class InputUserGroup {
 
     if (CommonMethods.containsNewlineOrDoubleQuote(
         userId, groupAlias)) {
-      state.log(ERROR,
-          "A field on this UserGroup CSV line (%s) contains either a double-quote or a "
-          + "newline character - these are not supported by the target version.", line.toString());
+      state.log("IUG.3", ERROR,
+          "A field on this UserGroup CSV line contains either a double-quote or a "
+          + "newline character - these are not supported by the target version: %s",
+          line.toString());
     }
   }
 

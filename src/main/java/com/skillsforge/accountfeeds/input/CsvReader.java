@@ -19,7 +19,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import static com.skillsforge.accountfeeds.config.LogLevel.ERROR;
-import static com.skillsforge.accountfeeds.config.LogLevel.INFO;
 import static com.skillsforge.accountfeeds.config.LogLevel.WARN;
 
 /**
@@ -49,7 +48,7 @@ public class CsvReader extends BufferedReader {
       try {
         thisLine = parseLine();
       } catch (CsvCheckedException e) {
-        state.log(WARN, "Skipping line %d due to CSV parsing exception: %s", lineNum,
+        state.log("CR.rf.1", WARN, "Skipping line %d due to CSV parsing exception: %s", lineNum,
             e.getLocalizedMessage());
         continue;
       }
@@ -124,7 +123,7 @@ public class CsvReader extends BufferedReader {
             thisField.setLength(0);
             fieldNum++;
           } else if (nextChar == '\"') {
-            state.log(ERROR,
+            state.log("CR.pl.1", ERROR,
                 "CSV (Line %d, Field %d): Unescaped quotation mark or leading characters "
                 + "before quoted field.\n", lineNum, fieldNum);
             throw new CsvCheckedException("[ERROR] CSV (Line " + lineNum + ", Field " + fieldNum
@@ -137,17 +136,19 @@ public class CsvReader extends BufferedReader {
 
         case LEXING_QUOTED_FIELD:
           if (nextRead == -1) {
-            state.log(ERROR, "CSV (Line %d, Field %d): Unterminated quoted field.",
+            state.log("CR.pl.2", ERROR, "CSV (Line %d, Field %d): Unterminated quoted field.",
                 lineNum, fieldNum);
             throw new CsvCheckedException("[ERROR] CSV (Line " + lineNum + ", Field " + fieldNum
                                           + "): Unterminated quoted field.");
           }
           if (nextChar == '\n') {
             lineNum++;
-            state.log(INFO,
+/*
+            state.log(null, INFO,
                 "CSV (Line %d, Field %d): Quoted field contains newline - was this "
                 + "intentional?",
                 lineNum, fieldNum);
+*/
           } else if (nextChar == '\"') {
             thisField.append('\"');
             stateMachine = CsvStates.ENDING_QUOTED_FIELD;
@@ -171,7 +172,7 @@ public class CsvReader extends BufferedReader {
             thisField.append('\"');
             stateMachine = CsvStates.LEXING_QUOTED_FIELD;
           } else {
-            state.log(ERROR,
+            state.log("CR.pl.3", ERROR,
                 "CSV (Line %d, Field %d): Unescaped quotation mark or trailing character "
                 + "after quoted field.",
                 lineNum, fieldNum);

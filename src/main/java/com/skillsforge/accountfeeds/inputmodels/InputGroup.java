@@ -44,12 +44,13 @@ public class InputGroup {
     this.state = state;
 
     if (line.size() < 4) {
-      state.log(ERROR,
-          "InputGroup is incomplete as CSV line (%s) does not contain enough columns.",
+      state.log("IG.1", ERROR,
+          "InputGroup is incomplete as CSV line does not contain enough columns: %s",
           line.toString());
     }
     if (line.size() > 4) {
-      state.log(ERROR, "InputGroup CSV line (%s) contains too many columns.", line.toString());
+      state.log("IG.2", ERROR, "InputGroup CSV line contains too many columns: %s",
+          line.toString());
     }
 
     groupAlias = CommonMethods.getFieldFromLine(line, 0);
@@ -59,9 +60,10 @@ public class InputGroup {
 
     if (CommonMethods.containsNewlineOrDoubleQuote(
         groupAlias, groupName, groupDescription, delete)) {
-      state.log(ERROR,
-          "A field on this Group CSV line (%s) contains either a double-quote or a "
-          + "newline character - these are not supported by the target version.", line.toString());
+      state.log("IG.3", ERROR,
+          "A field on this Group CSV line contains either a double-quote or a "
+          + "newline character - these are not supported by the target version: %s",
+          line.toString());
     }
 
     this.orgParams = orgParams;
@@ -100,9 +102,9 @@ public class InputGroup {
     }
 
     if ("true".equals(oDelete)) {
-      state.log(WARN,
-          "The Delete field in %s is set to true - deletion of groups has not yet "
-          + "been implemented, and this will likely not have the desired effect.",
+      state.log("IG.vaf.1", WARN,
+          "The 'Delete' field is set to true - deletion of groups has not yet "
+          + "been implemented, and this will likely not have the desired effect: %s",
           this.toString());
     }
 

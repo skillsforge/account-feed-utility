@@ -73,7 +73,7 @@ public class MainProgram {
     // program should exit at the next convenient opportunity.
     final ProgramState state = new ProgramState(args);
     if (state.hasFatalErrorBeenEncountered()) {
-      state.log(ERROR, "Problems were encountered whilst starting up - exiting.\n");
+      state.log("MP.1", ERROR, "Problems were encountered whilst starting up - exiting.\n");
       state.renderLog();
       exitCode = 1;
       return;
@@ -89,7 +89,7 @@ public class MainProgram {
     // organisation's current SkillsForge instance, and rules about their user metadata.  Immutable.
     final OrganisationParameters orgParams = new OrganisationParameters(state);
     if (state.hasFatalErrorBeenEncountered()) {
-      state.log(ERROR,
+      state.log("MP.2", ERROR,
           "Problems were encountered whilst reading the organisational state file - exiting.\n");
       state.renderLog();
       exitCode = 1;
@@ -102,7 +102,8 @@ public class MainProgram {
     final ParsedFeedFiles feedFiles = new ParsedFeedFiles(state, orgParams);
 
     if (state.hasFatalErrorBeenEncountered()) {
-      state.log(ERROR, "Problems were encountered whilst parsing the input files - exiting.\n");
+      state.log("MP.3", ERROR,
+          "Problems were encountered whilst parsing the input files - exiting.\n");
       state.renderLog();
       exitCode = 1;
       return;
@@ -123,7 +124,7 @@ public class MainProgram {
       try {
         upload(state, orgParams, feedFiles.getMetadataKeyCsvString());
       } catch (ParamException ignored) {
-        state.log(ERROR, "Could not locate the metadata headers in use in the Users file.");
+        state.log("MP.4", ERROR, "Could not locate the metadata headers in use in the Users file.");
       }
     }
 
@@ -162,7 +163,7 @@ public class MainProgram {
     feedFiles.checkLayout();
 
     // Build objects
-    state.log(INFO, "\n\nBuilding objects:\n=================\n");
+    state.log(null, INFO, "\n\nBuilding objects:\n=================\n");
     final Collection<InputUser> users = feedFiles.generateUserModels();
     final Collection<InputGroup> groups = feedFiles.generateGroupModels();
     final Collection<InputUserGroup> userGroups = feedFiles.generateUserGroupModels();
@@ -183,16 +184,16 @@ public class MainProgram {
         compiledGroups.add(outputGroup);
       }
     }
-    state.log(INFO, "+ All objects built.\n");
+    state.log(null, INFO, "+ All objects built.\n");
 
     // Build indexes against the objects, and check for missing primary keys whilst doing so.
-    state.log(INFO, "\n\nBuilding object indexes:\n========================\n");
+    state.log(null, INFO, "\n\nBuilding object indexes:\n========================\n");
     final Indexes indexes =
         new Indexes(orgParams, state, users, groups, compiledUsers, compiledGroups);
-    state.log(INFO, "+ All indexes built.\n");
+    state.log(null, INFO, "+ All indexes built.\n");
 
     // Build link objects
-    state.log(INFO, "\n\nValidating output objects:\n==========================\n");
+    state.log(null, INFO, "\n\nValidating output objects:\n==========================\n");
     for (final InputGroupRole groupRole : groupRoles) {
       final OutputGroupRole newGroupRole = groupRole.validateAllFields(indexes);
 
@@ -227,10 +228,10 @@ public class MainProgram {
         }
       }
     }
-    state.log(INFO, "+ Validated all final feed objects.\n");
+    state.log(null, INFO, "+ Validated all final feed objects.\n");
 
     // Check headcounts
-    state.licenceLog(INFO,
+    state.licenceLog(null, INFO,
         "Checking headcounts:\n"
         + "  NOTE: These do not consider manually created accounts or accounts\n"
         + "  in their grace period, so these numbers will be an under-estimate.\n");
@@ -241,16 +242,16 @@ public class MainProgram {
           .count();
 
       if (headcount > limit) {
-        state.licenceLog(WARN, "HEADCOUNT EXCEEDED for '%s': using %d of %d licences.",
+        state.licenceLog("MP.c.1", WARN, "HEADCOUNT EXCEEDED for '%s': using %d of %d licences.",
             headcountRole, headcount, limit);
       } else {
-        state.licenceLog(INFO, "Headcount for '%s': using %d of %d licences.",
+        state.licenceLog(null, INFO, "Headcount for '%s': using %d of %d licences.",
             headcountRole, headcount, limit);
       }
     }
-    state.licenceLog(INFO, "+ All headcounts checked.\n");
+    state.licenceLog(null, INFO, "+ All headcounts checked.\n");
 
-    state.log(INFO, "\n\nValidating relationships:\n==========================\n");
+    state.log(null, INFO, "\n\nValidating relationships:\n==========================\n");
 
     // Check minimum relationship users.
     orgParams.getMinimumRequiredRelationships()
@@ -265,8 +266,9 @@ public class MainProgram {
                               .count();
 
                           if (count < minExpected) {
-                            state.log(WARN, "User with ID %s has too few %s relationships - "
-                                            + "expected at least %d but user has %d.",
+                            state.log("MP.c.2", WARN,
+                                "User with ID %s has too few %s relationships - "
+                                + "expected at least %d but user has %d.",
                                 user.getUserId(), roleName, minExpected, count);
                           }
                         }
@@ -288,8 +290,9 @@ public class MainProgram {
                               .count();
 
                           if (count > maxExpected) {
-                            state.log(WARN, "User with ID %s has too many %s relationships - "
-                                            + "expected at most %d but user has %d.",
+                            state.log("MP.c.3", WARN,
+                                "User with ID %s has too many %s relationships - "
+                                + "expected at most %d but user has %d.",
                                 user.getUserId(), roleName, maxExpected, count);
                           }
                         }
@@ -297,7 +300,7 @@ public class MainProgram {
                 )
 
         );
-    state.log(INFO, "+ All relationships checked.\n");
+    state.log(null, INFO, "+ All relationships checked.\n");
   }
 
   @Contract(pure = true)
@@ -332,7 +335,7 @@ public class MainProgram {
       @Nonnull final Collection<OutputUser> compiledUsers,
       @Nonnull final Collection<OutputGroup> compiledGroups) {
 
-    state.log(INFO, "\n\nOutputting linted objects:\n==========================\n");
+    state.log(null, INFO, "\n\nOutputting linted objects:\n==========================\n");
 
     /*
     Plan:
@@ -410,7 +413,7 @@ public class MainProgram {
       return;
     }
 
-    state.log(INFO, "+ Output all linted objects.\n");
+    state.log(null, INFO, "+ Output all linted objects.\n");
   }
 
   private static void writeOutToFile(
@@ -419,7 +422,7 @@ public class MainProgram {
       @Nonnull final FileKey fileType,
       @Nonnull final Consumer<PrintStream> csvLineOutputConsumer) {
 
-    state.log(INFO, "Writing new %s file...", fileType.getFileDescription());
+    state.log(null, INFO, "Writing new %s file...", fileType.getFileDescription());
     final File outputFile = state.getFile(fileType);
     if (outputFile == null) {
       throw new AssertionError("The " + fileType.getFileDescription() + " file was null.");
@@ -432,18 +435,19 @@ public class MainProgram {
 
       output.flush();
     } catch (UnsupportedEncodingException e) {
-      state.log(ERROR, "Could not set the file encoding of the output %s file to UTF-8: %s",
+      state.log("MP.wotf.1", ERROR,
+          "Could not set the file encoding of the output %s file to UTF-8: %s",
           fileType.getFileDescription(), e.getLocalizedMessage());
       state.setFatalErrorEncountered();
       return;
     } catch (FileNotFoundException e) {
-      state.log(ERROR, "Could not locate the output %s file (%s): %s",
+      state.log("MP.wotf.2", ERROR, "Could not locate the output %s file (%s): %s",
           fileType.getFileDescription(), outputFile.getPath(), e.getLocalizedMessage());
       state.setFatalErrorEncountered();
       return;
     }
 
-    state.log(INFO, " ... %s file written successfully.", fileType.getFileDescription());
+    state.log(null, INFO, " ... %s file written successfully.", fileType.getFileDescription());
   }
 
   private static void upload(
@@ -480,7 +484,7 @@ public class MainProgram {
     final File groupRolesFile = state.getFile(FileKey.INPUT_GROUP_ROLES);
 
     if (anyNull(usersFile, groupsFile, userRelationshipsFile, userGroupsFile, groupRolesFile)) {
-      state.log(ERROR, "All five CSV files must be specified and exist.");
+      state.log("MP.u.1", ERROR, "All five CSV files must be specified and exist.");
       state.setFatalErrorEncountered();
       return;
     }
@@ -524,8 +528,8 @@ public class MainProgram {
             orgParams.getTargetVersionMinor(), orgParams.getTargetVersionRevision(),
             orgParams.getTargetVersionBetaLevel()));
 
-    state.log(INFO, "\n\nBeginning upload to server.\n"
-                    + "===========================\n\n");
+    state.log(null, INFO, "\n\nBeginning upload to server.\n"
+                          + "===========================\n\n");
 
     final RequestConfig config = RequestConfig.custom()
         .setConnectTimeout(10 * 1000)
@@ -546,12 +550,13 @@ public class MainProgram {
     ) {
       statusLine = response.getStatusLine();
     } catch (IOException e) {
-      state.log(ERROR, "Could not communicate with server: %s\n  %s", url, e.getLocalizedMessage());
+      state.log("MP.u.2", ERROR, "Could not communicate with server: %s\n  %s", url,
+          e.getLocalizedMessage());
       state.setFatalErrorEncountered();
       return;
     }
 
-    state.log(INFO, "Completed uploading: %s", statusLine.toString());
+    state.log(null, INFO, "Completed uploading: %s", statusLine.toString());
   }
 
   @SafeVarargs

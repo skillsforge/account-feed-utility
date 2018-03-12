@@ -113,7 +113,7 @@ public class OutputUser {
       @Nonnull final OutputUserGroup userGroup) {
 
     if (groupNames.contains(userGroup.getGroupAlias())) {
-      state.log(WARN, "UserGroup mapping of '%s' -> '%s' is specified more than once.",
+      state.log("OU.ag.1", WARN, "UserGroup mapping is specified more than once: '%s' -> '%s'",
           userId, userGroup.getGroupAlias());
       return;
     }
@@ -129,7 +129,8 @@ public class OutputUser {
       if (userRelationshipsHeldOverOtherUsers
           .get(rel.getRoleAliasLeft())
           .contains(rel.getUserIdRight())) {
-        state.log(WARN, "UserRelationship mapping '%s'-[%s]->'%s' is specified more than once.",
+        state.log("OU.arhoau.1", WARN,
+            "UserRelationship mapping is specified more than once: '%s'-[%s]->'%s'",
             userId, rel.getRoleAliasLeft(), rel.getUserIdRight());
         return;
       }
