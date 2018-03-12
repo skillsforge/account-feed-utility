@@ -73,9 +73,9 @@ public class LogLine {
   public void outputLogLine(@Nonnull final PrintStream stream) {
     //noinspection resource
     stream.printf("[%s%s%s] %s\n",
-        (errorCode == null) ? "" : (errorCode + ':'),
         level.name(),
         lintable ? "-LINTABLE" : "",
+        (errorCode == null) ? "" : ("::" + errorCode),
         errorString);
   }
 
