@@ -523,7 +523,7 @@ public class MainProgram {
     post.setEntity(entityBuilder.build());
     post.setHeader("X-Auth-Token", uploadParams.get(PropKey.TOKEN));
     post.setHeader("User-Agent",
-        String.format("account-feed-utility-1.0-SNAPSHOT for [%s] targeting [%d.%d.%d/%d]",
+        String.format("account-feed-utility for [%s] targeting [%d.%d.%d/%d]",
             orgParams.getOrganisationName(), orgParams.getTargetVersionMajor(),
             orgParams.getTargetVersionMinor(), orgParams.getTargetVersionRevision(),
             orgParams.getTargetVersionBetaLevel()));
