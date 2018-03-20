@@ -92,7 +92,11 @@ public class InputUserRelationship {
       return null;
     }
 
-    return new OutputUserRelationship(oUserIdLeft, oUserIdRight, oRoleAlias, "",
+    return new OutputUserRelationship(
+        oUserIdLeft,
+        oUserIdRight,
+        oRoleAlias,
+        "ROLE_PGR",
         "true".equals(oDelete));
   }
 
