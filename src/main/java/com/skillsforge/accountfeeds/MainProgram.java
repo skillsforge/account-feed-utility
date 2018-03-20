@@ -64,7 +64,7 @@ public class MainProgram {
   @Nonnull
   private static final ContentType PARAM_CONTENT_TYPE = ContentType.create("text/plain", UTF8);
 
-  private int exitCode = 0;
+  private final int exitCode;
 
   public MainProgram(@Nonnull final String[] args) {
 
@@ -128,6 +128,15 @@ public class MainProgram {
       }
     }
 
+    if (state.hasFatalErrorBeenEncountered()) {
+      state.log("MP.5", ERROR,
+          "Problems were encountered - exiting.\n");
+      state.renderLog();
+      exitCode = 1;
+      return;
+    }
+
+    exitCode = 0;
     state.renderLog();
   }
 
@@ -483,16 +492,11 @@ public class MainProgram {
     final File userGroupsFile = state.getFile(FileKey.INPUT_USER_GROUPS);
     final File groupRolesFile = state.getFile(FileKey.INPUT_GROUP_ROLES);
 
-    if (anyNull(usersFile, groupsFile, userRelationshipsFile, userGroupsFile, groupRolesFile)) {
+    if (isAnyNull(usersFile, groupsFile, userRelationshipsFile, userGroupsFile, groupRolesFile)) {
       state.log("MP.u.1", ERROR, "All five CSV files must be specified and exist.");
       state.setFatalErrorEncountered();
       return;
     }
-    assert usersFile != null;
-    assert groupsFile != null;
-    assert userRelationshipsFile != null;
-    assert userGroupsFile != null;
-    assert groupRolesFile != null;
 
     // This uses the FileBody class to write out each file.  It's probably not UTF-8 compliant...
     // See the monstrosity that is FileBody::writeTo to see how this works.
@@ -559,15 +563,19 @@ public class MainProgram {
     state.log(null, INFO, "Completed uploading: %s", statusLine.toString());
   }
 
-  @SafeVarargs
-  @Contract(pure = true)
-  private static <T> boolean anyNull(@Nonnull final T... objects) {
-    for (@Nullable T o : objects) {
-      if (o == null) {
-        return true;
-      }
-    }
-    return false;
+  @Contract(pure = true, value = "null,_,_,_,_->true;"
+                                 + "_,null,_,_,_->true;"
+                                 + "_,_,null,_,_->true;"
+                                 + "_,_,_,null,_->true;"
+                                 + "_,_,_,_,null->true;"
+                                 + "!null,!null,!null,!null,!null->false")
+  private static <T> boolean isAnyNull(
+      @Nullable final T o1,
+      @Nullable final T o2,
+      @Nullable final T o3,
+      @Nullable final T o4,
+      @Nullable final T o5) {
+    return ((o1 == null) || (o2 == null) || (o3 == null) || (o4 == null) || (o5 == null));
   }
 
   @Contract(pure = true)
