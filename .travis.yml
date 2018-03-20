@@ -1,0 +1,27 @@
+language: java
+jdk: openjdk8
+cache:
+  directories:
+  - $HOME/.m2
+before_cache:
+  - rm -rf $HOME/.m2/repository/com/skillsforge
+jobs:
+  include:
+  - stage: test
+    script: mvn -q clean test
+  - stage: deploy
+    if: tag IS present
+    script: mvn -q clean install && mkdir -p target/deploy && cp target/account-feed-utility-$TRAVIS_TAG.jar target/deploy/
+    deploy:
+      provider: s3
+      skip_cleanup: true
+      access_key_id: AKIAI2DBR6XXN66BKUSQ
+      secret_access_key:
+        secure: Dnc+t0S9weDXDKH6TUgWY2HTsf8rehHljtTXEWptaTENOpmmPayu9xgPJmexma0XwSadwgRK0rQasazjXcXxB/DuKeKkBcujDykECCfS0prfbY6pmsdhHFalIcjwWARoqXh/Xp4d8PFWLbMDQVGnPbsCuGsUeng0dE4h1TWIoV+NUkiKG0Hnlrb3/zL7JroANd29QsfQdtxcihcCI+ehDhyk+ZJ1C8gdx9QqJkMLUmLgG1U3jKRm94zDpXMDuu0HNlS5roJwgIyMCq/4RijamO6pjIaX+hQ0Q31JlC/JuguirBZb9NRK2xUmSMzNU3OZQcEi7pxyj00va/JMexhkuWuIS9myimI14hWUims2YPa6tb2tu6365otFpRC0ZY722UjV//o93PAOjj+kn6hSX+bToSJ0i1kUR44zrfH4G80moOiTDoqzD3ppBHyu5c/zdqvGrfmhdyvfB8t/EeXN4eD7dFR+wLLkQhVj8Tz8OTyrzAuvHkoOkMeUebVy3qkGxRgFQXqen57UrWskVywQdCWYu+2Vtp+Z581pppstED8e0UlfPNqCAQXGfasEGLobob+poyXWkCaJHxtHTmdqly29993qI6WA+jb7E5go9QQCzPK9ioSLcPaETVfCO8ZxftL8GG0/YP9CcL4KbyyZvOTpbtUvASYYuibDbUCJHVw=
+      bucket: skillsforge-account-feed-utils
+      local-dir: target/deploy
+      upload-dir: jar
+      acl: public_read
+      region: eu-west-2
+      on:
+        tags: true
