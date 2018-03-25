@@ -6,6 +6,7 @@ import com.skillsforge.accountfeeds.config.ProgramMode;
 import com.skillsforge.accountfeeds.config.ProgramState;
 import com.skillsforge.accountfeeds.config.PropKey;
 import com.skillsforge.accountfeeds.exceptions.ParamException;
+import com.skillsforge.accountfeeds.exceptions.UploadException;
 import com.skillsforge.accountfeeds.input.Indexes;
 import com.skillsforge.accountfeeds.input.ParsedFeedFiles;
 import com.skillsforge.accountfeeds.inputmodels.InputGroup;
@@ -553,9 +554,18 @@ public class MainProgram {
         CloseableHttpResponse response = client.execute(post)
     ) {
       statusLine = response.getStatusLine();
+      if ((statusLine == null) || (statusLine.getStatusCode() != 200)) {
+        throw new UploadException("Server returned status code " + statusLine.getStatusCode() + ": "
+                                  + statusLine.getReasonPhrase());
+      }
     } catch (IOException e) {
       state.log("MP.u.2", ERROR, "Could not communicate with server: %s\n  %s", url,
           e.getLocalizedMessage());
+      state.setFatalErrorEncountered();
+      return;
+    } catch (UploadException e) {
+      state.log("MP.u.3", ERROR, "Upload to %s returned failure code: %s", url,
+          e.getMessage());
       state.setFatalErrorEncountered();
       return;
     }
