@@ -202,7 +202,7 @@ public class OrganisationParameters {
         //noinspection CallToSystemGetenv
         final String tokenSysEnv = System.getenv(ENV_SF_TOKEN);
         uploadParams.put(PropKey.TOKEN,
-            coalesce(tokenCmdLine, tokenStateFile, tokenSysEnv, "Invalid Token"));
+            coalesce(tokenCmdLine, tokenSysEnv, tokenStateFile, "Invalid Token"));
 
         final String orgAliasStateFile = uploadParamObject.getString("orgAlias");
         final String orgAliasCmdLine = state.getProperty(PropKey.ORG_ALIAS);
