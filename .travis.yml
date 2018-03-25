@@ -2,9 +2,9 @@ language: java
 jdk: openjdk8
 cache:
   directories:
-  - $HOME/.m2
+  - "$HOME/.m2"
 before_cache:
-  - rm -rf $HOME/.m2/repository/com/skillsforge
+- rm -rf $HOME/.m2/repository/com/skillsforge
 jobs:
   include:
   - stage: test
@@ -25,3 +25,6 @@ jobs:
       region: eu-west-2
       on:
         tags: true
+notifications:
+  slack:
+    secure: USn8MiAbMnu1H+FTAiG+acjsYBKUs7hNEme0Hp5NiuWWxN0D/ckJs1CTJa5isXrlsC8OEaeDjekWvs+NhwxQpOxQtPSKzftTTt8e6VV8+PDBLXnqiTpixCxahewoNqDSSuHGtHLVR5m6WYaSVutUciBSMnVvoBvY9Xns7Tx9gehPZh6uDd9L491zeeXHN6M+fQJUa21iYEdZHXoEJZ9bvgE12+k7pP0x0YrJCT39xjy3xS9cyn8YbkY5UVbe7G9wCgh2W1ZASOxGMaw2pIpNpihxJ9qFZDkW3E4XfnrBLu6QYAGdp77FBGxopkW+1XxzDHAFOuYflpUFrSpL4IW0kX3WLvY0va+NIq2TMgpWV7lTDIVS1HozrKV06XPssMox+/PEGlbtMVjF/o+4Bs2L50ydgjzILpC8U9cPmrt3waTMCCymX3nCXUhNHw9amTCOShZSHeCA//iEFS5z5tSA2pzIc39wxAyvJf6u8itRq5SSEKUUqllQ9mJvKF0ZnFzuEA5B/xKNBCGm22JWloCRNDzdPRFnI/uC7L7+Yk/oR6newze1XjYVvg44ESH4bfXdQdKP48od4ItKXE+7wqMZ7IFQgFAajq+h2fXAQpY97pLXNyassd0rT5XGBHXvYgMqJjeRe/3Y+GBVE4a+QR1b6PwdBYCupvVspWtX/P0peJE=
