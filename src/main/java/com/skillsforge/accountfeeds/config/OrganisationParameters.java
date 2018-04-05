@@ -244,7 +244,7 @@ public class OrganisationParameters {
             uploadParamObject.has("accountExpiryDays")
             ? String.valueOf(uploadParamObject.getLong("accountExpiryDays"))
             : null;
-        final String accountExpiryCmdLine = state.getProperty(PropKey.URL);
+        final String accountExpiryCmdLine = state.getProperty(PropKey.RELATIONSHIP_EXPIRE_DELAY);
         final String accountExpiryToUse = coalesce(accountExpiryCmdLine, accountExpiryStateFile);
         if (accountExpiryToUse != null) {
           uploadParams.put(PropKey.ACCOUNT_EXPIRE_DELAY,
@@ -255,7 +255,7 @@ public class OrganisationParameters {
             uploadParamObject.has("relationshipExpiryDays")
             ? String.valueOf(uploadParamObject.getLong("relationshipExpiryDays"))
             : null;
-        final String relExpiryCmdLine = state.getProperty(PropKey.URL);
+        final String relExpiryCmdLine = state.getProperty(PropKey.RELATIONSHIP_EXPIRE_DELAY);
         final String relExpiryToUse = coalesce(relExpiryCmdLine, relExpiryStateFile);
         if (relExpiryToUse != null) {
           uploadParams.put(PropKey.RELATIONSHIP_EXPIRE_DELAY,
